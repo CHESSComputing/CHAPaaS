@@ -1,0 +1,366 @@
+package main
+
+// handlers module holds all HTTP handlers functions
+//
+// Copyright (c) 2023 - Valentin Kuznetsov <vkuznet@gmail.com>
+//
+
+import (
+	"encoding/json"
+	"errors"
+	"fmt"
+	"html/template"
+	"log"
+	"net/http"
+	"net/url"
+	"strings"
+	"time"
+
+	"github.com/uptrace/bunrouter"
+	"golang.org/x/oauth2"
+)
+
+// HTTPError represents HTTP error record
+type HTTPError struct {
+	Method         string `json:"method"`           // HTTP method
+	HTTPCode       int    `json:"http_code"`        // HTTP error code
+	Code           int    `json:"code"`             // server status code
+	Timestamp      string `json:"timestamp"`        // timestamp of the error
+	Path           string `json:"path"`             // URL path
+	UserAgent      string `json:"user_agent"`       // http user-agent field
+	XForwardedHost string `json:"x_forwarded_host"` // http.Request X-Forwarded-Host
+	XForwardedFor  string `json:"x_forwarded_for"`  // http.Request X-Forwarded-For
+	RemoteAddr     string `json:"remote_addr"`      // http.Request remote address
+	Reason         string `json:"reason"`           // error message
+}
+
+// HTTPResponse rpresents HTTP JSON response
+type HTTPResponse struct {
+	Method         string `json:"method"`           // HTTP method
+	Path           string `json:"path"`             // URL path
+	UserAgent      string `json:"user_agent"`       // http user-agent field
+	XForwardedHost string `json:"x_forwarded_host"` // http.Request X-Forwarded-Host
+	XForwardedFor  string `json:"x_forwarded_for"`  // http.Request X-Forwarded-For
+	RemoteAddr     string `json:"remote_addr"`      // http.Request remote address
+	HTTPCode       int    `json:"http_code"`        // HTTP error code
+	Code           int    `json:"code"`             // server status code
+	Reason         string `json:"reason"`           // error code reason
+	Timestamp      string `json:"timestamp"`        // timestamp of the error
+	Response       string `json:"response"`         // response message
+	Error          string `json:"error"`            // error message
+	Data           string `json:"data"`             // HTTP response data
+	ElapsedTime    string `json:"elapsed_time"`     // elapsed time of HTTP request
+}
+
+// helper function to get model name from http request
+func getModel(r *http.Request) (string, bool) {
+	params := bunrouter.ParamsFromContext(r.Context())
+	model, ok := params.Map()["model"]
+	return model, ok
+}
+
+// helper function to parse given template and return HTML page
+func tmplPage(tmpl string, tmplData TmplRecord) string {
+	if tmplData == nil {
+		tmplData = make(TmplRecord)
+	}
+	var templates Templates
+	page := templates.Tmpl(tmpl, tmplData)
+	//     tdir := fmt.Sprintf("%s/templates", Config.StaticDir)
+	//     page := templates.TmplFile(tdir, tmpl, tmplData)
+	return page
+}
+
+// helper function to generate JSON response
+func httpResponse(w http.ResponseWriter, r *http.Request, tmpl TmplRecord) {
+	httpCode := tmpl.GetInt("HttpCode")
+	code := tmpl.GetInt("Code")
+	content := tmpl.GetString("Content")
+	tmpl["EndTime"] = time.Now().Unix()
+	elapsedTime := tmpl.GetElapsedTime()
+	tmpl["ElapsedTime"] = elapsedTime
+	if r.Header.Get("Accept") != "application/json" {
+		// regenerate top part since we may
+		tmpl["Top"] = tmplPage("top.tmpl", tmpl)
+		top := tmpl.GetString("Top")
+		bottom := tmpl.GetString("Bottom")
+		tfile := tmpl.GetString("Template")
+		page := tmplPage(tfile, tmpl)
+		if httpCode != 0 {
+			w.WriteHeader(httpCode)
+		}
+		if tfile == "index.tmpl" {
+			w.Write([]byte(page))
+		} else {
+			w.Write([]byte(top + page + bottom))
+		}
+		return
+	}
+	if httpCode == 0 {
+		httpCode = http.StatusOK
+	}
+	hrec := HTTPResponse{
+		Method:         r.Method,
+		Path:           r.RequestURI,
+		RemoteAddr:     r.RemoteAddr,
+		XForwardedFor:  r.Header.Get("X-Forwarded-For"),
+		XForwardedHost: r.Header.Get("X-Forwarded-Host"),
+		UserAgent:      r.Header.Get("User-agent"),
+		Timestamp:      time.Now().String(),
+		Code:           code,
+		Reason:         errorMessage(code),
+		HTTPCode:       httpCode,
+		Response:       content,
+		Error:          tmpl.GetError(),
+		Data:           tmpl.GetString("Data"),
+		ElapsedTime:    tmpl.GetElapsedTime(),
+	}
+	if Config.Verbose > 0 {
+		log.Printf("HTTPResponse: %+v", hrec)
+	}
+	data, err := json.MarshalIndent(hrec, "", "   ")
+	if err != nil {
+		data = []byte(err.Error())
+	}
+	w.WriteHeader(httpCode)
+	w.Write([]byte(data))
+}
+
+// helper function to provide standard HTTP error reply
+func httpError(w http.ResponseWriter, r *http.Request, tmpl TmplRecord, code int, err error, httpCode int) {
+	tmpl["Code"] = code
+	tmpl["Error"] = err
+	tmpl["HttpCode"] = httpCode
+	tmpl["Content"] = err.Error()
+	tmpl["Template"] = "error.tmpl"
+	httpResponse(w, r, tmpl)
+}
+
+// helper function to make initial template struct
+func makeTmpl(title string) TmplRecord {
+	tmpl := make(TmplRecord)
+	tmpl["Title"] = title
+	tmpl["User"] = ""
+	tmpl["Base"] = Config.Base
+	tmpl["ServerInfo"] = info()
+	tmpl["Top"] = tmplPage("top.tmpl", tmpl)
+	tmpl["Bottom"] = tmplPage("bottom.tmpl", tmpl)
+	tmpl["StartTime"] = time.Now().Unix()
+	return tmpl
+}
+
+// helper function to check if HTTP request contains form-data
+func formData(r *http.Request) bool {
+	for key, values := range r.Header {
+		if strings.ToLower(key) == "content-type" {
+			for _, v := range values {
+				if strings.Contains(strings.ToLower(v), "form-data") {
+					return true
+				}
+			}
+		}
+	}
+	return false
+}
+
+// gologinHandler provides wrapper for gologin handlers
+// it gets HTTP request referrer and adds this information to oauth2 RedirectURL
+func gologinHandler(config *oauth2.Config, next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// get HTTP request referrer
+		referer := r.Referer()
+		if referer != "" && strings.Contains(referer, "redirect=") {
+			// modify oauth config RedirectURL with our referrer value
+			arr := strings.Split(referer, "redirect=")
+			api := arr[1]
+			config.RedirectURL = fmt.Sprintf("%s?redirect=%s", config.RedirectURL, api)
+		}
+		// Call the next handler
+		next.ServeHTTP(w, r)
+	})
+}
+
+// FaviconHandler
+func FaviconHandler(w http.ResponseWriter, r *http.Request) {
+	http.ServeFile(w, r, fmt.Sprintf("%s/images/favicon.ico", Config.StaticDir))
+}
+
+// helper function to check user's authorization
+func checkAuthz(tmpl TmplRecord, w http.ResponseWriter, r *http.Request) error {
+	// set original request URI
+	authz := r.Header.Get("Authorization")
+	// get our session cookies
+	session, err := sessionStore.Get(r, sessionName)
+	if authz != "" || err != nil {
+		token := strings.Trim(strings.Replace(authz, "Bearer ", "", -1), " ")
+		session, err = tokenInfo(token, w, r)
+		if err != nil {
+			return err
+		}
+	}
+	if err != nil {
+		return err
+	}
+
+	// extract user context from OAuth
+	user, ok := session.GetOk(sessionUserName)
+	if !ok {
+		return errors.New("User session does not present user name")
+	}
+	token, ok := session.GetOk(sessionToken)
+	if !ok {
+		return errors.New("User session does not present access token")
+	}
+	provider, ok := session.GetOk(sessionProvider)
+	if !ok {
+		return errors.New("User session does not present access token")
+	}
+	tmpl["User"] = user
+	tmpl["Token"] = token
+	tmpl["Provider"] = provider
+	return nil
+}
+
+// NotebookHandler handles login page
+func NotebookHandler(w http.ResponseWriter, r *http.Request) {
+	tmpl := makeTmpl("CHAP notebook")
+	params, _ := url.ParseQuery(r.URL.RawQuery)
+	values, _ := params["token"]
+	token := values[0]
+	tmpl["Token"] = token
+	tmpl["Template"] = "notebook.tmpl"
+	httpResponse(w, r, tmpl)
+}
+
+// ChapRunHandler handles login page
+func ChapRunHandler(w http.ResponseWriter, r *http.Request) {
+	tmpl := makeTmpl("CHAP output")
+	params, _ := url.ParseQuery(r.URL.RawQuery)
+	values, _ := params["token"]
+	token := values[0]
+	notebook := Notebook{Host: "http://localhost:8888", Token: token}
+	fname := "Untitled.ipynb"
+	rec, err := notebook.Capture(fname)
+	var lines []string
+	for _, cell := range rec.Content.Cells {
+		lines = append(lines, cell.Source)
+	}
+	log.Printf("### CHAP %+v, error %v", rec, err)
+	content := "CHAP input<br/>"
+	// TODO: I need to get user from OAuth and construct appropriate config
+	user := ""
+	config := `
+pipeline:
+  - reader.Reader: {}
+  - common.PrintProcessor: {}
+  - reader.Writer: {}
+`
+	out, err := runCHAP(user, config)
+	content += strings.Trim(strings.Join(lines, "\n"), " ")
+	content += fmt.Sprintf("Output<pre>%s</pre><br/>Error:<pre>%s</pre>", out, err)
+	log.Println("### CHAP content\n", content)
+	tmpl["Content"] = template.HTML(content)
+	tmpl["Template"] = "success.tmpl"
+	httpResponse(w, r, tmpl)
+}
+
+// LoginHandler handles login page
+func LoginHandler(w http.ResponseWriter, r *http.Request) {
+	tmpl := makeTmpl("CHAP login")
+	tmpl["GithubLogin"] = fmt.Sprintf("%s/github/login", Config.Base)
+	tmpl["GoogleLogin"] = fmt.Sprintf("%s/google/login", Config.Base)
+	tmpl["FacebookLogin"] = fmt.Sprintf("%s/facebook/login", Config.Base)
+	tmpl["Template"] = "login.tmpl"
+	httpResponse(w, r, tmpl)
+}
+
+// TokenHandler handles login page
+func TokenHandler(w http.ResponseWriter, r *http.Request) {
+	tmpl := makeTmpl("CHAP token")
+
+	// user HTTP call should present either valid token or it will be
+	// redirected to /login end-point
+	if err := checkAuthz(tmpl, w, r); err != nil {
+		rpath := fmt.Sprintf("/login?redirect=%s", r.URL.Path)
+		// get our session cookies
+		session, err := sessionStore.Get(r, sessionName)
+		if err != nil {
+			log.Printf("TokenHandler, session %s redirect due to error %v", sessionName, err)
+			http.Redirect(w, r, rpath, http.StatusTemporaryRedirect)
+			return
+		}
+		// check if ser has been authenticated with any OAuth providers
+		user, ok := session.GetOk(sessionUserName)
+		if !ok {
+			log.Printf("TokenHandler, unable to identify username due to error %v", err)
+			http.Redirect(w, r, rpath, http.StatusTemporaryRedirect)
+			return
+		}
+		userID, _ := session.GetOk(sessionUserID)
+		provider, _ := session.GetOk(sessionProvider)
+		tmpl["User"] = user
+		tmpl["UserID"] = userID
+		tmpl["Provider"] = provider
+	}
+	user := tmpl.GetString("User")
+	token := tmpl.GetString("Token")
+	if Config.Verbose > 0 {
+		log.Printf("AccessHandler: user %s token %s", user, token)
+	}
+
+	// HTTP response with user info
+	content := fmt.Sprintf("User %s, access token: %s", user, token)
+	tmpl["Content"] = template.HTML(content)
+	tmpl["Template"] = "success.tmpl"
+	httpResponse(w, r, tmpl)
+}
+
+// AccessHandler handles login page
+func AccessHandler(w http.ResponseWriter, r *http.Request) {
+	tmpl := makeTmpl("CHAP access")
+
+	// user HTTP call should present either valid token or it will be
+	// redirected to /login end-point
+	if err := checkAuthz(tmpl, w, r); err != nil {
+		tmpl["Error"] = err
+		tmpl["HttpCode"] = http.StatusBadRequest
+		httpResponse(w, r, tmpl)
+		return
+	}
+	user := tmpl.GetString("User")
+	token := tmpl.GetString("Token")
+	if Config.Verbose > 0 {
+		log.Printf("AccessHandler: user %s token %s", user, token)
+	}
+
+	// HTTP response with user info
+	content := fmt.Sprintf("User %s, access token: %s", user, token)
+	tmpl["Content"] = template.HTML(content)
+	tmpl["Template"] = "success.tmpl"
+	httpResponse(w, r, tmpl)
+}
+
+// DocsHandler handles status of CHAP server
+func DocsHandler(w http.ResponseWriter, r *http.Request) {
+	tmpl := makeTmpl("CHAP documentation")
+	fname := fmt.Sprintf("%s/md/docs.md", Config.StaticDir)
+	content, err := mdToHTML(fname)
+	if err != nil {
+		httpError(w, r, tmpl, FileIOError, err, http.StatusInternalServerError)
+		return
+	}
+	tmpl["Content"] = template.HTML(content)
+	tmpl["Template"] = "docs.tmpl"
+	httpResponse(w, r, tmpl)
+}
+
+// IndexHandler handles status of CHAP server
+func IndexHandler(w http.ResponseWriter, r *http.Request) {
+	tmpl := makeTmpl("CHAP main page")
+	tmpl["Base"] = Config.Base
+	tmpl["Token"] = ""
+	top := tmplPage("top.tmpl", tmpl)
+	bottom := tmplPage("bottom.tmpl", tmpl)
+	page := tmplPage("index.tmpl", tmpl)
+	w.Write([]byte(top + page + bottom))
+}
