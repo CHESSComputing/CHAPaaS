@@ -11,6 +11,7 @@ import (
 	"html/template"
 	"log"
 	"strconv"
+	textTemplate "text/template"
 	"time"
 )
 
@@ -79,7 +80,27 @@ func (q Templates) Tmpl(tfile string, tmplData map[string]interface{}) string {
 	buf := new(bytes.Buffer)
 	err := t.Execute(buf, tmplData)
 	if err != nil {
-		panic(err)
+		log.Println("ERROR: template.Tmpl", err)
+		return ""
+	}
+	q.html = buf.String()
+	return q.html
+}
+
+// Tmpl method for ServerTemplates structure
+func (q Templates) TextTmpl(tfile string, tmplData map[string]interface{}) string {
+	if q.html != "" {
+		return q.html
+	}
+
+	// get template from embed.FS
+	filenames := []string{"static/templates/" + tfile}
+	t := textTemplate.Must(textTemplate.New(tfile).ParseFS(StaticFs, filenames...))
+	buf := new(bytes.Buffer)
+	err := t.Execute(buf, tmplData)
+	if err != nil {
+		log.Println("ERROR: template.Tmpl", err)
+		return ""
 	}
 	q.html = buf.String()
 	return q.html

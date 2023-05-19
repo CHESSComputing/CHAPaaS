@@ -248,16 +248,25 @@ func ChapRunHandler(w http.ResponseWriter, r *http.Request) {
 	log.Printf("### CHAP %+v, error %v", rec, err)
 	content := "CHAP input<br/>"
 	// TODO: I need to get user from OAuth and construct appropriate config
-	user := ""
+	user := "test"
+	// generate user code
+	genUserCode(user, lines)
+
+	// generate user config
+	/*
+			config := `
+		pipeline:
+		  - common.PrintProcessor: {}
+		`
+	*/
 	config := `
 pipeline:
-  - reader.Reader: {}
+  - UserProcessor: {}
   - common.PrintProcessor: {}
-  - reader.Writer: {}
 `
 	out, err := runCHAP(user, config)
 	content += strings.Trim(strings.Join(lines, "\n"), " ")
-	content += fmt.Sprintf("Output<pre>%s</pre><br/>Error:<pre>%s</pre>", out, err)
+	content += fmt.Sprintf("Output<pre>%s</pre><br/>Error:<pre>%v</pre>", out, err)
 	log.Println("### CHAP content\n", content)
 	tmpl["Content"] = template.HTML(content)
 	tmpl["Template"] = "success.tmpl"
