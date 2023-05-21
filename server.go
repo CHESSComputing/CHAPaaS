@@ -76,12 +76,17 @@ func bunRouter() *bunrouter.CompatRouter {
 	router.Router.GET(base+"/github/login", bunrouter.HTTPHandler(githubLogin))
 	router.Router.GET(base+"/github/callback", bunrouter.HTTPHandler(githubCallback))
 
+	// server routes
+	router.GET(base+"/docs", DocsHandler)
 	router.GET(base+"/login", LoginHandler)
 	router.GET(base+"/access", AccessHandler)
+	router.GET(base+"/publish", PublishHandler)
 	router.GET(base+"/notebook", NotebookHandler)
+	router.GET(base+"/workflows", WorkflowsHandler)
+
+	// chap routes
 	router.GET(base+"/chap/run", ChapRunHandler)
 	router.GET(base+"/chap/profile", ChapProfileHandler)
-	router.GET(base+"/publish", PublishHandler)
 
 	// static handlers
 	for _, dir := range []string{"js", "css", "images"} {

@@ -198,9 +198,6 @@ func NotebookHandler(w http.ResponseWriter, r *http.Request) {
 // ChapRunHandler handles login page
 func ChapRunHandler(w http.ResponseWriter, r *http.Request) {
 	tmpl := makeTmpl("CHAP output")
-	//     params, _ := url.ParseQuery(r.URL.RawQuery)
-	//     values, _ := params["token"]
-	//     token := values[0]
 	notebook := Notebook{Host: "http://localhost:8888", Token: Config.JupyterToken}
 	fname := "Untitled.ipynb"
 	rec, err := notebook.Capture(fname)
@@ -216,17 +213,14 @@ func ChapRunHandler(w http.ResponseWriter, r *http.Request) {
 	genUserCode(user, lines)
 
 	// generate user config
+	config := genChapConfig(user)
 	/*
 			config := `
 		pipeline:
+		  - UserProcessor: {}
 		  - common.PrintProcessor: {}
 		`
 	*/
-	config := `
-pipeline:
-  - UserProcessor: {}
-  - common.PrintProcessor: {}
-`
 	out, err := runCHAP(user, config)
 	content += strings.Trim(strings.Join(lines, "\n"), " ")
 	content += fmt.Sprintf("Output<pre>%s</pre><br/>Error:<pre>%v</pre>", out, err)
@@ -238,14 +232,27 @@ pipeline:
 
 // ChapProfileHandler handles login page
 func ChapProfileHandler(w http.ResponseWriter, r *http.Request) {
-	// TODO: need implementation
+	// TODO: need implementation to run CHAP in profile mode
+	// and then capture profile output and present it in graphical mode
 	ChapRunHandler(w, r)
 }
 
 // PublishHandler handles login page
 func PublishHandler(w http.ResponseWriter, r *http.Request) {
-	// TODO: need implementation
+	// TODO: need implementation, should publish CHAP user workflow
+	// into user repository (separate from CHAP) and
+	// later include user workflow into list of supported workflows
+	// and publish new chap release to Galaxy
 	ChapRunHandler(w, r)
+}
+
+// WorkflowsHandler handles login page
+func WorkflowsHandler(w http.ResponseWriter, r *http.Request) {
+	tmpl := makeTmpl("CHAP workflows")
+	// TODO: get list of workflows from user repository and
+	// present them on a web
+	tmpl["Template"] = "workflows.tmpl"
+	httpResponse(w, r, tmpl)
 }
 
 // LoginHandler handles login page
