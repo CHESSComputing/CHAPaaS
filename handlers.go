@@ -16,7 +16,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/uptrace/bunrouter"
 	"golang.org/x/oauth2"
 )
 
@@ -50,13 +49,6 @@ type HTTPResponse struct {
 	Error          string `json:"error"`            // error message
 	Data           string `json:"data"`             // HTTP response data
 	ElapsedTime    string `json:"elapsed_time"`     // elapsed time of HTTP request
-}
-
-// helper function to get model name from http request
-func getModel(r *http.Request) (string, bool) {
-	params := bunrouter.ParamsFromContext(r.Context())
-	model, ok := params.Map()["model"]
-	return model, ok
 }
 
 // helper function to parse given template and return HTML page
@@ -149,20 +141,6 @@ func makeTmpl(title string) TmplRecord {
 	return tmpl
 }
 
-// helper function to check if HTTP request contains form-data
-func formData(r *http.Request) bool {
-	for key, values := range r.Header {
-		if strings.ToLower(key) == "content-type" {
-			for _, v := range values {
-				if strings.Contains(strings.ToLower(v), "form-data") {
-					return true
-				}
-			}
-		}
-	}
-	return false
-}
-
 // gologinHandler provides wrapper for gologin handlers
 // it gets HTTP request referrer and adds this information to oauth2 RedirectURL
 func gologinHandler(config *oauth2.Config, next http.Handler) http.Handler {
@@ -224,6 +202,32 @@ func checkAuthz(tmpl TmplRecord, w http.ResponseWriter, r *http.Request) error {
 // NotebookHandler handles login page
 func NotebookHandler(w http.ResponseWriter, r *http.Request) {
 	tmpl := makeTmpl("CHAP notebook")
+
+	// user HTTP call should present either valid token or it will be
+	// redirected to /login end-point
+	if err := checkAuthz(tmpl, w, r); err != nil {
+		rpath := fmt.Sprintf("/login?redirect=%s", r.URL.Path)
+		// get our session cookies
+		session, err := sessionStore.Get(r, sessionName)
+		if err != nil {
+			log.Printf("NotebookHandler, session %s redirect due to error %v", sessionName, err)
+			http.Redirect(w, r, rpath, http.StatusTemporaryRedirect)
+			return
+		}
+		// check if ser has been authenticated with any OAuth providers
+		user, ok := session.GetOk(sessionUserName)
+		if !ok {
+			log.Printf("NotebookHandler, unable to identify username due to error %v", err)
+			http.Redirect(w, r, rpath, http.StatusTemporaryRedirect)
+			return
+		}
+		userID, _ := session.GetOk(sessionUserID)
+		provider, _ := session.GetOk(sessionProvider)
+		tmpl["User"] = user.(string)
+		tmpl["UserID"] = userID.(string)
+		tmpl["Provider"] = provider.(string)
+	}
+
 	params, _ := url.ParseQuery(r.URL.RawQuery)
 	values, _ := params["token"]
 	token := values[0]
@@ -273,13 +277,22 @@ pipeline:
 	httpResponse(w, r, tmpl)
 }
 
+// ChapProfileHandler handles login page
+func ChapProfileHandler(w http.ResponseWriter, r *http.Request) {
+	// TODO: need implementation
+	ChapRunHandler(w, r)
+}
+
+// PublishHandler handles login page
+func PublishHandler(w http.ResponseWriter, r *http.Request) {
+	// TODO: need implementation
+	ChapRunHandler(w, r)
+}
+
 // LoginHandler handles login page
 func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	tmpl := makeTmpl("CHAP login")
 	tmpl["GithubLogin"] = fmt.Sprintf("%s/github/login", Config.Base)
-	tmpl["GoogleLogin"] = fmt.Sprintf("%s/google/login", Config.Base)
-	tmpl["FacebookLogin"] = fmt.Sprintf("%s/facebook/login", Config.Base)
-	tmpl["Template"] = "login.tmpl"
 	httpResponse(w, r, tmpl)
 }
 
