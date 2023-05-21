@@ -47,11 +47,20 @@ func bunRouter() *bunrouter.CompatRouter {
 		bunrouter.Use(bunrouterLimitMiddleware),
 	).Compat()
 	base := Config.Base
+
+	// server routes
 	router.GET(base+"/", IndexHandler)
 	router.GET(base+"/favicon.ico", FaviconHandler)
-
-	// web APIs
 	router.GET(base+"/docs", DocsHandler)
+	router.GET(base+"/login", LoginHandler)
+	router.GET(base+"/access", AccessHandler)
+	router.GET(base+"/publish", PublishHandler)
+	router.GET(base+"/notebook", NotebookHandler)
+	router.GET(base+"/workflows", WorkflowsHandler)
+
+	// chap routes
+	router.GET(base+"/chap/run", ChapRunHandler)
+	router.GET(base+"/chap/profile", ChapProfileHandler)
 
 	// auth end-points
 	// github OAuth routes
@@ -76,18 +85,6 @@ func bunRouter() *bunrouter.CompatRouter {
 	router.Router.GET(base+"/github/login", bunrouter.HTTPHandler(githubLogin))
 	router.Router.GET(base+"/github/callback", bunrouter.HTTPHandler(githubCallback))
 
-	// server routes
-	router.GET(base+"/docs", DocsHandler)
-	router.GET(base+"/login", LoginHandler)
-	router.GET(base+"/access", AccessHandler)
-	router.GET(base+"/publish", PublishHandler)
-	router.GET(base+"/notebook", NotebookHandler)
-	router.GET(base+"/workflows", WorkflowsHandler)
-
-	// chap routes
-	router.GET(base+"/chap/run", ChapRunHandler)
-	router.GET(base+"/chap/profile", ChapProfileHandler)
-
 	// static handlers
 	for _, dir := range []string{"js", "css", "images"} {
 		filesFS, err := fs.Sub(StaticFs, "static/"+dir)
@@ -99,11 +96,6 @@ func bunRouter() *bunrouter.CompatRouter {
 		hdlr := http.StripPrefix(m, fileServer)
 		router.Router.GET(m+"/*path", bunrouter.HTTPHandler(hdlr))
 	}
-
-	// static model download area
-	bpath := fmt.Sprintf("%s/bundles", base)
-	hdlr := http.StripPrefix(bpath, http.FileServer(http.Dir(Config.StorageDir)))
-	router.Router.GET(base+"/bundles/*path", bunrouter.HTTPHandler(hdlr))
 
 	return router
 }

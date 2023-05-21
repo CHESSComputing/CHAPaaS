@@ -62,3 +62,27 @@ pipeline:
 `
 	return config
 }
+func getChapWorkflows() []Workflow {
+	var workflows []Workflow
+	w := Workflow{
+		UserName:    "user",
+		Name:        "SAXSWAX",
+		Type:        "saxswaxs workflow type",
+		Group:       "beamline-X",
+		Version:     "v0.0.1",
+		Description: "bla-bla-bla",
+		Reference:   "http://some.site/tomo",
+	}
+	workflows = append(workflows, w)
+	w = Workflow{
+		UserName:    "user",
+		Name:        "TOMO",
+		Type:        "tomo workflow type",
+		Group:       "beamlineA",
+		Version:     "v1.2.3",
+		Description: "bla-bla-bla",
+		Reference:   "http://some.site/saxswax",
+	}
+	workflows = append(workflows, w)
+	return workflows
+}

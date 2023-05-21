@@ -1,0 +1,71 @@
+<section>
+  <article>
+{{range $rec := .Workflows}}
+    <div class="record">
+
+        <span class="width-100">
+            User:
+        </span>
+        <span class="">
+            {{$rec.UserName}}
+        </span>
+
+        <br/>
+
+        <span class="width-100">
+            Name:
+        </span>
+        <span class="">
+            {{$rec.Name}}
+        </span>
+
+        <br/>
+
+        <span class="width-100">
+            Type:
+        </span>
+        <span class="">
+            {{$rec.Type}}
+        </span>
+
+        <br/>
+
+        <span class="width-100">
+            Group:
+        </span>
+        <span class="">
+            {{$rec.Group}}
+        </span>
+
+        <br/>
+
+        <span class="width-100">
+            Version:
+        </span>
+        <span class="">
+            {{$rec.Version}}
+        </span>
+
+        <br/>
+
+        <span class="width-100">
+            Reference
+        </span>
+        <span class="">
+            {{$rec.Reference}}
+        </span>
+
+        <br/>
+
+        <span class="width-100">
+            Description:
+        </span>
+        <span class="">
+            {{$rec.Description}}
+        </span>
+
+    </div> <!-- div record -->
+    <hr/>
+{{end}}
+  </article>
+</section>

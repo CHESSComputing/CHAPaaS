@@ -251,6 +251,8 @@ func WorkflowsHandler(w http.ResponseWriter, r *http.Request) {
 	tmpl := makeTmpl("CHAP workflows")
 	// TODO: get list of workflows from user repository and
 	// present them on a web
+	workflows := getChapWorkflows()
+	tmpl["Workflows"] = workflows
 	tmpl["Template"] = "workflows.tmpl"
 	httpResponse(w, r, tmpl)
 }
