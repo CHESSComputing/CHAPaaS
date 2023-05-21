@@ -47,10 +47,10 @@ func bunRouter() *bunrouter.CompatRouter {
 		bunrouter.Use(bunrouterLimitMiddleware),
 	).Compat()
 	base := Config.Base
-
-	// server routes
 	router.GET(base+"/", IndexHandler)
 	router.GET(base+"/favicon.ico", FaviconHandler)
+
+	// server routes
 	router.GET(base+"/docs", DocsHandler)
 	router.GET(base+"/login", LoginHandler)
 	router.GET(base+"/access", AccessHandler)
