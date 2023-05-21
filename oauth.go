@@ -10,20 +10,18 @@ import (
 	"time"
 
 	"github.com/dghubble/gologin/v2/github"
-	google "github.com/dghubble/gologin/v2/google"
 	oauth2Login "github.com/dghubble/gologin/v2/oauth2"
-	twitter "github.com/dghubble/gologin/v2/twitter"
 	sessions "github.com/dghubble/sessions"
 )
 
 const (
 	// here we keep names of cookies in our OAuth session
-	sessionName     = "MLHub-App"
-	sessionSecret   = "MLHub-Secret"
-	sessionUserID   = "MLHub-UserID"
-	sessionUserName = "MLHub-UserName"
-	sessionToken    = "MLHub-Token"
-	sessionProvider = "MLHun-Provider"
+	sessionName     = "CHAP-App"
+	sessionSecret   = "CHAP-Secret"
+	sessionUserID   = "CHAP-UserID"
+	sessionUserName = "CHAP-UserName"
+	sessionToken    = "CHAP-Token"
+	sessionProvider = "CHAP-Provider"
 )
 
 // sessionStore encodes and decodes session data stored in signed cookies
@@ -46,20 +44,6 @@ func issueSession(provider string) http.Handler {
 				userName = fmt.Sprintf("%v", *user.Login)
 			} else {
 				log.Println("ERROR: fail to obtain github credentials", err)
-			}
-		} else if provider == "google" {
-			if user, err := google.UserFromContext(ctx); err == nil {
-				userID = fmt.Sprintf("%v", user.Id)
-				userName = fmt.Sprintf("%v", user.Name)
-			} else {
-				log.Println("ERROR: fail to obtain google credentials", err)
-			}
-		} else if provider == "twitter" {
-			if user, err := twitter.UserFromContext(ctx); err == nil {
-				userID = fmt.Sprintf("%v", user.ID)
-				userName = fmt.Sprintf("%v", user.ScreenName)
-			} else {
-				log.Println("ERROR: fail to obtain twitter credentials", err)
 			}
 		}
 		session.Set(sessionProvider, provider)
@@ -152,12 +136,6 @@ func tokenInfo(token string, w http.ResponseWriter, r *http.Request) (*sessions.
 	for _, p := range providers {
 		if p == "github" {
 			userData, err = githubTokenInfo(token)
-		} else if p == "google" {
-			err = errors.New(fmt.Sprintf("tokenInfo for p %s is not yet implemented", p))
-		} else if p == "facebook" {
-			err = errors.New(fmt.Sprintf("tokenInfo for p %s is not yet implemented", p))
-		} else if p == "twitter" {
-			err = errors.New(fmt.Sprintf("tokenInfo for p %s is not yet implemented", p))
 		} else {
 			err = errors.New(fmt.Sprintf("tokenInfo for p %s is not yet implemented", p))
 		}
