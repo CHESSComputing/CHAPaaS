@@ -11,16 +11,10 @@ import (
 
 	"github.com/uptrace/bunrouter"
 
-	facebook "github.com/dghubble/gologin/v2/facebook"
-	facebookOAuth2 "golang.org/x/oauth2/facebook"
-
 	gologin "github.com/dghubble/gologin/v2"
 	"github.com/dghubble/gologin/v2/github"
 	"golang.org/x/oauth2"
 	githubOAuth2 "golang.org/x/oauth2/github"
-
-	google "github.com/dghubble/gologin/v2/google"
-	googleOAuth2 "golang.org/x/oauth2/google"
 )
 
 // content is our static web server content.
@@ -74,9 +68,7 @@ func bunRouter() *bunrouter.CompatRouter {
 		Endpoint:     githubOAuth2.Endpoint,
 	}
 	stateConfig := gologin.DebugOnlyCookieConfig
-	//     githubLogin := github.StateHandler(stateConfig, github.LoginHandler(config, nil))
 	githubLogin := gologinHandler(config, github.StateHandler(stateConfig, github.LoginHandler(config, nil)))
-	//     githubCallback := github.StateHandler(stateConfig, github.CallbackHandler(config, issueSession("github"), nil))
 	githubCallback := gologinHandler(config, github.StateHandler(
 		stateConfig,
 		github.CallbackHandler(config, issueSession("github"), nil),
@@ -84,44 +76,13 @@ func bunRouter() *bunrouter.CompatRouter {
 	router.Router.GET(base+"/github/login", bunrouter.HTTPHandler(githubLogin))
 	router.Router.GET(base+"/github/callback", bunrouter.HTTPHandler(githubCallback))
 
-	// google OAuth routes
-	arec, err = Config.Credentials("google")
-	if err != nil {
-		log.Println("WARNING:", err)
-	}
-	config = &oauth2.Config{
-		ClientID:     arec.ClientID,
-		ClientSecret: arec.ClientSecret,
-		RedirectURL:  fmt.Sprintf("http://localhost:%d%s/google/callback", Config.Port, Config.Base),
-		Endpoint:     googleOAuth2.Endpoint,
-		//         Scopes:       []string{"profile", "email"},
-	}
-	googleLogin := gologinHandler(config, google.StateHandler(stateConfig, google.LoginHandler(config, nil)))
-	googleCallback := gologinHandler(config, google.StateHandler(stateConfig, google.CallbackHandler(config, issueSession("google"), nil)))
-	router.Router.GET(base+"/google/login", bunrouter.HTTPHandler(googleLogin))
-	router.Router.GET(base+"/google/callback", bunrouter.HTTPHandler(googleCallback))
-
-	// facebook OAuth routes
-	arec, err = Config.Credentials("facebook")
-	if err != nil {
-		log.Println("WARNING:", err)
-	}
-	config = &oauth2.Config{
-		ClientID:     arec.ClientID,
-		ClientSecret: arec.ClientSecret,
-		RedirectURL:  fmt.Sprintf("http://localhost:%d%s/facebook/callback", Config.Port, Config.Base),
-		Endpoint:     facebookOAuth2.Endpoint,
-	}
-	facebookLogin := gologinHandler(config, facebook.StateHandler(stateConfig, facebook.LoginHandler(config, nil)))
-	facebookCallback := gologinHandler(config, facebook.StateHandler(stateConfig, facebook.CallbackHandler(config, issueSession("facebook"), nil)))
-	router.Router.GET(base+"/facebook/login", bunrouter.HTTPHandler(facebookLogin))
-	router.Router.GET(base+"/facebook/callback", bunrouter.HTTPHandler(facebookCallback))
-
 	router.GET(base+"/login", LoginHandler)
 	router.GET(base+"/access", AccessHandler)
 	router.GET(base+"/token", TokenHandler)
 	router.GET(base+"/notebook", NotebookHandler)
 	router.GET(base+"/chap/run", ChapRunHandler)
+	router.GET(base+"/chap/profile", ChapProfileHandler)
+	router.GET(base+"/publish", PublishHandler)
 
 	// static handlers
 	for _, dir := range []string{"js", "css", "images"} {
