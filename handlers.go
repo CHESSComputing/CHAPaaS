@@ -6,13 +6,11 @@ package main
 //
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"html/template"
 	"log"
 	"net/http"
-	"net/url"
 	"strings"
 	"time"
 
@@ -66,56 +64,26 @@ func tmplPage(tmpl string, tmplData TmplRecord) string {
 // helper function to generate JSON response
 func httpResponse(w http.ResponseWriter, r *http.Request, tmpl TmplRecord) {
 	httpCode := tmpl.GetInt("HttpCode")
-	code := tmpl.GetInt("Code")
-	content := tmpl.GetString("Content")
 	tmpl["EndTime"] = time.Now().Unix()
 	elapsedTime := tmpl.GetElapsedTime()
 	tmpl["ElapsedTime"] = elapsedTime
-	if r.Header.Get("Accept") != "application/json" {
-		// regenerate top part since we may
-		tmpl["Top"] = tmplPage("top.tmpl", tmpl)
-		top := tmpl.GetString("Top")
-		bottom := tmpl.GetString("Bottom")
-		tfile := tmpl.GetString("Template")
-		page := tmplPage(tfile, tmpl)
-		if httpCode != 0 {
-			w.WriteHeader(httpCode)
-		}
-		if tfile == "index.tmpl" {
-			w.Write([]byte(page))
+	// regenerate top part since we may
+	tmpl["Top"] = tmplPage("top.tmpl", tmpl)
+	top := tmpl.GetString("Top")
+	bottom := tmpl.GetString("Bottom")
+	tfile := tmpl.GetString("Template")
+	if tfile == "" {
+		if httpCode == 0 || httpCode == http.StatusOK {
+			tfile = "success.tmpl"
 		} else {
-			w.Write([]byte(top + page + bottom))
+			tfile = "error.tmpl"
 		}
-		return
 	}
-	if httpCode == 0 {
-		httpCode = http.StatusOK
+	page := tmplPage(tfile, tmpl)
+	if httpCode != 0 {
+		w.WriteHeader(httpCode)
 	}
-	hrec := HTTPResponse{
-		Method:         r.Method,
-		Path:           r.RequestURI,
-		RemoteAddr:     r.RemoteAddr,
-		XForwardedFor:  r.Header.Get("X-Forwarded-For"),
-		XForwardedHost: r.Header.Get("X-Forwarded-Host"),
-		UserAgent:      r.Header.Get("User-agent"),
-		Timestamp:      time.Now().String(),
-		Code:           code,
-		Reason:         errorMessage(code),
-		HTTPCode:       httpCode,
-		Response:       content,
-		Error:          tmpl.GetError(),
-		Data:           tmpl.GetString("Data"),
-		ElapsedTime:    tmpl.GetElapsedTime(),
-	}
-	if Config.Verbose > 0 {
-		log.Printf("HTTPResponse: %+v", hrec)
-	}
-	data, err := json.MarshalIndent(hrec, "", "   ")
-	if err != nil {
-		data = []byte(err.Error())
-	}
-	w.WriteHeader(httpCode)
-	w.Write([]byte(data))
+	w.Write([]byte(top + page + bottom))
 }
 
 // helper function to provide standard HTTP error reply
@@ -165,17 +133,8 @@ func FaviconHandler(w http.ResponseWriter, r *http.Request) {
 
 // helper function to check user's authorization
 func checkAuthz(tmpl TmplRecord, w http.ResponseWriter, r *http.Request) error {
-	// set original request URI
-	authz := r.Header.Get("Authorization")
 	// get our session cookies
 	session, err := sessionStore.Get(r, sessionName)
-	if authz != "" || err != nil {
-		token := strings.Trim(strings.Replace(authz, "Bearer ", "", -1), " ")
-		session, err = tokenInfo(token, w, r)
-		if err != nil {
-			return err
-		}
-	}
 	if err != nil {
 		return err
 	}
@@ -206,11 +165,11 @@ func NotebookHandler(w http.ResponseWriter, r *http.Request) {
 	// user HTTP call should present either valid token or it will be
 	// redirected to /login end-point
 	if err := checkAuthz(tmpl, w, r); err != nil {
-		rpath := fmt.Sprintf("/login?redirect=%s", r.URL.Path)
+		rpath := fmt.Sprintf("%s/login?redirect=%s", Config.Base, r.URL.Path)
 		// get our session cookies
 		session, err := sessionStore.Get(r, sessionName)
 		if err != nil {
-			log.Printf("NotebookHandler, session %s redirect due to error %v", sessionName, err)
+			log.Printf("NotebookHandler, session %s redirect to %s due to error %v", sessionName, rpath, err)
 			http.Redirect(w, r, rpath, http.StatusTemporaryRedirect)
 			return
 		}
@@ -228,10 +187,10 @@ func NotebookHandler(w http.ResponseWriter, r *http.Request) {
 		tmpl["Provider"] = provider.(string)
 	}
 
-	params, _ := url.ParseQuery(r.URL.RawQuery)
-	values, _ := params["token"]
-	token := values[0]
-	tmpl["Token"] = token
+	//     params, _ := url.ParseQuery(r.URL.RawQuery)
+	//     values, _ := params["token"]
+	//     token := values[0]
+	tmpl["Token"] = Config.JupyterToken
 	tmpl["Template"] = "notebook.tmpl"
 	httpResponse(w, r, tmpl)
 }
@@ -239,10 +198,10 @@ func NotebookHandler(w http.ResponseWriter, r *http.Request) {
 // ChapRunHandler handles login page
 func ChapRunHandler(w http.ResponseWriter, r *http.Request) {
 	tmpl := makeTmpl("CHAP output")
-	params, _ := url.ParseQuery(r.URL.RawQuery)
-	values, _ := params["token"]
-	token := values[0]
-	notebook := Notebook{Host: "http://localhost:8888", Token: token}
+	//     params, _ := url.ParseQuery(r.URL.RawQuery)
+	//     values, _ := params["token"]
+	//     token := values[0]
+	notebook := Notebook{Host: "http://localhost:8888", Token: Config.JupyterToken}
 	fname := "Untitled.ipynb"
 	rec, err := notebook.Capture(fname)
 	var lines []string
@@ -293,47 +252,7 @@ func PublishHandler(w http.ResponseWriter, r *http.Request) {
 func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	tmpl := makeTmpl("CHAP login")
 	tmpl["GithubLogin"] = fmt.Sprintf("%s/github/login", Config.Base)
-	httpResponse(w, r, tmpl)
-}
-
-// TokenHandler handles login page
-func TokenHandler(w http.ResponseWriter, r *http.Request) {
-	tmpl := makeTmpl("CHAP token")
-
-	// user HTTP call should present either valid token or it will be
-	// redirected to /login end-point
-	if err := checkAuthz(tmpl, w, r); err != nil {
-		rpath := fmt.Sprintf("/login?redirect=%s", r.URL.Path)
-		// get our session cookies
-		session, err := sessionStore.Get(r, sessionName)
-		if err != nil {
-			log.Printf("TokenHandler, session %s redirect due to error %v", sessionName, err)
-			http.Redirect(w, r, rpath, http.StatusTemporaryRedirect)
-			return
-		}
-		// check if ser has been authenticated with any OAuth providers
-		user, ok := session.GetOk(sessionUserName)
-		if !ok {
-			log.Printf("TokenHandler, unable to identify username due to error %v", err)
-			http.Redirect(w, r, rpath, http.StatusTemporaryRedirect)
-			return
-		}
-		userID, _ := session.GetOk(sessionUserID)
-		provider, _ := session.GetOk(sessionProvider)
-		tmpl["User"] = user
-		tmpl["UserID"] = userID
-		tmpl["Provider"] = provider
-	}
-	user := tmpl.GetString("User")
-	token := tmpl.GetString("Token")
-	if Config.Verbose > 0 {
-		log.Printf("AccessHandler: user %s token %s", user, token)
-	}
-
-	// HTTP response with user info
-	content := fmt.Sprintf("User %s, access token: %s", user, token)
-	tmpl["Content"] = template.HTML(content)
-	tmpl["Template"] = "success.tmpl"
+	tmpl["Template"] = "login.tmpl"
 	httpResponse(w, r, tmpl)
 }
 

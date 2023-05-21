@@ -48,7 +48,8 @@ type Configuration struct {
 	StorageDir string `json:"storage_dir"` // storage directory
 
 	// CHAP parts
-	CHAP string `json:"chap"` // location of CHAP executable
+	CHAP         string `json:"chap"`          // location of CHAP executable
+	JupyterToken string `json:"jupyter_token"` // jupyter token
 }
 
 // Credentials returns provider OAuth credential record

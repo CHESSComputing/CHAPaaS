@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -125,59 +124,4 @@ func githubTokenInfo(token string) (UserData, error) {
 	}
 	err = json.Unmarshal(data, &userData)
 	return userData, err
-}
-
-// helper function to get user data info
-func tokenInfo(token string, w http.ResponseWriter, r *http.Request) (*sessions.Session[any], error) {
-	var userData UserData
-	var err error
-	var provider string
-	providers := []string{"github", "google", "facebook", "twitter"}
-	for _, p := range providers {
-		if p == "github" {
-			userData, err = githubTokenInfo(token)
-		} else {
-			err = errors.New(fmt.Sprintf("tokenInfo for p %s is not yet implemented", p))
-		}
-		if err == nil {
-			provider = p
-			break
-		}
-	}
-	if token == "" {
-		return nil, errors.New("No valid access token is provided")
-	}
-	if err != nil {
-		msg := fmt.Sprintf("None of the existing providers %v can validate your token", providers)
-		return nil, errors.New(msg)
-	}
-	userData, err = githubTokenInfo(token)
-	if err != nil {
-		return nil, err
-	}
-	if userData.Login == "" || userData.ID == 0 {
-		return nil, errors.New("No valid user data is validated from" + provider)
-	}
-	// now if token is valid we will setup appropriate session cookies
-	session, err := sessionStore.Get(r, sessionName)
-	if err != nil {
-		if r.Header.Get("Accept") == "application/json" {
-			if Config.Verbose > 0 {
-				log.Println("### tokenInfo create new session for HTTP CLI", r.Header.Get("User-Agent"), sessionName)
-			}
-			session = sessionStore.New(sessionName)
-		} else {
-			return session, err
-		}
-	}
-	session.Set(sessionProvider, provider)
-	session.Set(sessionToken, token)
-	session.Set(sessionUserID, userData.ID)
-	session.Set(sessionUserName, userData.Login)
-	if err := session.Save(w); err != nil {
-		log.Println("### tokenInfo saession saved error", err)
-		return nil, err
-	}
-	log.Printf("### tokenInfo session is saved, %+v", session)
-	return session, nil
 }

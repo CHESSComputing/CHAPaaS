@@ -78,7 +78,6 @@ func bunRouter() *bunrouter.CompatRouter {
 
 	router.GET(base+"/login", LoginHandler)
 	router.GET(base+"/access", AccessHandler)
-	router.GET(base+"/token", TokenHandler)
 	router.GET(base+"/notebook", NotebookHandler)
 	router.GET(base+"/chap/run", ChapRunHandler)
 	router.GET(base+"/chap/profile", ChapProfileHandler)
