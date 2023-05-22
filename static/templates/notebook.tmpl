@@ -8,13 +8,39 @@
         <input type="hidden" id="token" name="token" value="{{.Token}}" />
         <input type="hidden" id="base" name="base" value="{{.Base}}" />
     </div>
-    <br/>
+    <div class="grid grid-gapless">
+        <div class="column column-2">
+            <span class="">
+                &nbsp;&nbsp;&nbsp;
+                &nbsp;&nbsp;&nbsp;
+                &nbsp;&nbsp;&nbsp;
+            </span>
+            <b>Input :</b>
+        </div>
+        <div class="column column-10">
+            <input class="input input-small" id="input" name="input" placeholder="Input data area, e.g. /nfs/chess/...">
+        </div>
+    </div>
+    <div class="grid grid-gapless">
+        <div class="column column-2">
+            <span class="">
+                &nbsp;&nbsp;&nbsp;
+                &nbsp;&nbsp;&nbsp;
+                &nbsp;&nbsp;&nbsp;
+            </span>
+            <b>Output:</b>
+        </div>
+        <div class="column column-10">
+        <input class="input input-small" id="output" name="output" placeholder="Output area for your workflow">
+        </div>
+    </div>
+<!--    <br/>-->
     <div class="grid">
         <div class="column column-2">
             <nav class="menu menu-strong menu-pills">
                 <ul class="menu-list">
                     <li class="menu-item">
-                        <a href="javascript:FlipTag('readers')" class="menu-link">Input</a>
+                        <a href="javascript:FlipTag('readers')" class="menu-link">Reader</a>
                         <div class="hide" name="readers" id="readers">
                             <div class="submenu">
                             <ul class="menu-list">
@@ -35,7 +61,7 @@
                         </div>
                     </li>
                     <li class="menu-item">
-                        <a href="javascript:FlipTag('writers')" class="menu-link">Output</a>
+                        <a href="javascript:FlipTag('writers')" class="menu-link">Writer</a>
                         <div class="hide" name="writers" id="writers">
                             <div class="submenu">
                             <ul class="menu-list">
