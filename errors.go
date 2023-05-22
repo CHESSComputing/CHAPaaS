@@ -10,7 +10,7 @@ const (
 	SessionError              // 104 session error
 )
 
-// helper function to return human error message for given MLHub error code
+// helper function to return human error message for given error code
 func errorMessage(code int) string {
 	if code == 0 {
 		return ""
