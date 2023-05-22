@@ -74,3 +74,22 @@ footer {
     height: auto;
   }
 }
+
+.hide {
+    display: none;
+}
+.show {
+    display: block;
+    margin-top:6px;
+    border-top-width:1px;
+}
+.show_inline {
+    display: inline;
+    color: black;
+    background-color: white;
+}
+
+.submenu {
+    background-color: lightgrey;
+    margin-left: 5px;
+}

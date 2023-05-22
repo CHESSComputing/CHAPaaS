@@ -7,10 +7,40 @@
             <nav class="menu menu-strong menu-pills">
                 <ul class="menu-list">
                     <li class="menu-item">
-                        <a href="#" class="menu-link">Input</a>
+                        <a href="javascript:FlipTag('readers')" class="menu-link">Input</a>
+                        <div class="hide" name="readers" id="readers">
+                            <div class="submenu">
+                            <ul class="menu-list">
+                                <li class="menu-item">
+                                    <a href="#" class="menu-link">Yaml reader</a>
+                                </li>
+                                <li class="menu-item">
+                                    <a href="#" class="menu-link">Nexus reader</a>
+                                </li>
+                                <li class="menu-item">
+                                    <a href="#" class="menu-link">CSV reader</a>
+                                </li>
+                            </ul>
+                            </div>
+                        </div>
                     </li>
                     <li class="menu-item">
-                        <a href="#" class="menu-link">Output</a>
+                        <a href="javascript:FlipTag('writers')" class="menu-link">Output</a>
+                        <div class="hide" name="writers" id="writers">
+                            <div class="submenu">
+                            <ul class="menu-list">
+                                <li class="menu-item">
+                                    <a href="#" class="menu-link">Yaml writer</a>
+                                </li>
+                                <li class="menu-item">
+                                    <a href="#" class="menu-link">Nexus writer</a>
+                                </li>
+                                <li class="menu-item">
+                                    <a href="#" class="menu-link">CSV writer</a>
+                                </li>
+                            </ul>
+                            </div>
+                        </div>
                     </li>
                     <li class="menu-item">
                         <a href="#" class="menu-link">Processor</a>
@@ -21,6 +51,8 @@
             </nav>
         </div>
         <div class="column column-10">
+            <div class="hide" id="workflow" name="workflow">
+            </div>
             <!--
             <iframe src="http://localhost:8888/?token={{.Token}}"
                     width="100%"
