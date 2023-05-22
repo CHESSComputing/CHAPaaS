@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"strings"
 )
 
 // helper function to run CHAP pipeline
@@ -54,12 +55,31 @@ func genUserCode(user string, lines []string) {
 }
 
 // helper function to generate CHAP config based on user workflow
-func genChapConfig(user string) string {
-	config := `
-pipeline:
-  - UserProcessor: {}
-  - common.PrintProcessor: {}
-`
+func genChapConfig(user, reader, writer string) string {
+	config := "pipeline:\n"
+	reader = strings.ToLower(reader)
+	writer = strings.ToLower(writer)
+	if reader == "yaml" {
+		config += "  - common.YAMLReader: {}"
+	} else if reader == "nexus" {
+		config += "  - common.NexuReader: {}"
+	}
+	config += "  - UserProcessor: {}\n  - common.PrintProcessor: {}"
+	if writer == "yaml" {
+		config += "  - common.YAMLWriter: {}"
+	} else if writer == "nexus" {
+		config += "  - common.NexuWriter: {}"
+	}
+	/*
+	   	config := `
+	   pipeline:
+	     - UserProcessor: {}
+	     - common.PrintProcessor: {}
+	   `
+	*/
+	if Config.Verbose > 0 {
+		log.Println("genChapConfog:\n", config)
+	}
 	return config
 }
 func getChapWorkflows() []Workflow {

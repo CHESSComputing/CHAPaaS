@@ -3,6 +3,10 @@
     <h1>CHAP Notebook</h1>
     <div class="hide" id="workflow" name="workflow">
         <div class="pipeline" id="pipeline" name="pipeline"></div>
+        <input type="hidden" id="reader" name="reader" value="" />
+        <input type="hidden" id="writer" name="writer" value="" />
+        <input type="hidden" id="token" name="token" value="{{.Token}}" />
+        <input type="hidden" id="base" name="base" value="{{.Base}}" />
     </div>
     <br/>
     <div class="grid">
@@ -15,13 +19,16 @@
                             <div class="submenu">
                             <ul class="menu-list">
                                 <li class="menu-item">
-                                    <a href="javascript:ShowTag('workflow');AddReader('Yaml')" class="menu-link">Yaml reader</a>
+                                    <a href="javascript:ShowTag('workflow');AddReader('noreader');HideTag('readers')" class="menu-link">No reader</a>
                                 </li>
                                 <li class="menu-item">
-                                    <a href="javascript:ShowTag('workflow');AddReader('Nexus')" class="menu-link">Nexus reader</a>
+                                    <a href="javascript:ShowTag('workflow');AddReader('Yaml');HideTag('readers')" class="menu-link">Yaml reader</a>
                                 </li>
                                 <li class="menu-item">
-                                    <a href="javascript:ShowTag('workflow');AddReader('CSV')" class="menu-link">CSV reader</a>
+                                    <a href="javascript:ShowTag('workflow');AddReader('Nexus');HideTag('readers')" class="menu-link">Nexus reader</a>
+                                </li>
+                                <li class="menu-item">
+                                    <a href="javascript:ShowTag('workflow');AddReader('CSV');HideTag('readers')" class="menu-link">CSV reader</a>
                                 </li>
                             </ul>
                             </div>
@@ -33,13 +40,16 @@
                             <div class="submenu">
                             <ul class="menu-list">
                                 <li class="menu-item">
-                                    <a href="javascript:ShowTag('workflow');AddWriter('Yaml')" class="menu-link">Yaml writer</a>
+                                    <a href="javascript:ShowTag('workflow');AddWriter('nowriter');HideTag('writers')" class="menu-link">No writer</a>
                                 </li>
                                 <li class="menu-item">
-                                    <a href="javascript:ShowTag('workflow');AddWriter('Nexus')" class="menu-link">Nexus writer</a>
+                                    <a href="javascript:ShowTag('workflow');AddWriter('Yaml');HideTag('writers')" class="menu-link">Yaml writer</a>
                                 </li>
                                 <li class="menu-item">
-                                    <a href="javascript:ShowTag('workflow');AddWriter('CSV')" class="menu-link">CSV writer</a>
+                                    <a href="javascript:ShowTag('workflow');AddWriter('Nexus');HideTag('writers')" class="menu-link">Nexus writer</a>
+                                </li>
+                                <li class="menu-item">
+                                    <a href="javascript:ShowTag('workflow');AddWriter('CSV');HideTag('writers')" class="menu-link">CSV writer</a>
                                 </li>
                             </ul>
                             </div>
@@ -77,8 +87,10 @@
         </div>
         <div class="column column-7">
             &nbsp;
-            <a href="{{.Base}}/chap/run?token={{.Token}}" class="button button-primary button-small button-round">Run</a>
+            <a href="javascript:RunCHAP()" class="button button-primary button-small button-round">Run</a>
             &nbsp;
+<!--            <a href="{{.Base}}/chap/run?token={{.Token}}" class="button button-primary button-small button-round">RunOrig</a>-->
+<!--            &nbsp;-->
             <a href="{{.Base}}/chap/profile" class="button button-primary button-small button-round">Profile</a>
             &nbsp;
             <a href="{{.Base}}/chap/publish" class="button button-primary button-small button-round">Publish</a>

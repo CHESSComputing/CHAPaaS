@@ -27,6 +27,8 @@ function AddReader(tag) {
     }
     id.innerHTML += tag;
     id.innerHTML += "&nbsp; reader &nbsp; &rarr; &nbsp; Processor &nbsp; &rarr; &nbsp;";
+    // update hidden chap input
+    document.getElementById("reader").value = tag;
 }
 function AddWriter(tag) {
     var id=document.getElementById("workflow");
@@ -35,4 +37,25 @@ function AddWriter(tag) {
     }
     id.innerHTML += tag;
     id.innerHTML += "&nbsp; writer";
+    // update hidden chap input
+    document.getElementById("writer").value += tag;
+}
+function RunCHAP() {
+    var bid=document.getElementById("base");
+    var tid=document.getElementById("token");
+    rurl = bid.value+"/chap/run?token="+tid.value;
+    var id=document.getElementById("reader");
+    if (id) {
+        reader = "&reader="+id.value;
+        rurl += reader;
+    }
+    var id=document.getElementById("writer");
+    if (id) {
+        writer = "&writer="+id.value;
+        rurl += writer;
+    }
+    console.log("will call "+rurl);
+    // execute rurl call to our server
+    window.onbeforeunload = null;
+    window.location.href = rurl;
 }

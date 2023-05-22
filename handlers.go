@@ -11,6 +11,7 @@ import (
 	"html/template"
 	"log"
 	"net/http"
+	"net/url"
 	"strings"
 	"time"
 
@@ -142,20 +143,36 @@ func checkAuthz(tmpl TmplRecord, w http.ResponseWriter, r *http.Request) error {
 	// extract user context from OAuth
 	user, ok := session.GetOk(sessionUserName)
 	if !ok {
-		return errors.New("User session does not present user name")
+		return errors.New("web session does not present user name")
 	}
 	token, ok := session.GetOk(sessionToken)
 	if !ok {
-		return errors.New("User session does not present access token")
+		return errors.New("web session does not present access token")
 	}
 	provider, ok := session.GetOk(sessionProvider)
 	if !ok {
-		return errors.New("User session does not present access token")
+		return errors.New("web session does not present access token")
 	}
 	tmpl["User"] = user
 	tmpl["Token"] = token
 	tmpl["Provider"] = provider
 	return nil
+}
+
+// helper function to get user name from web session
+func getUser(r *http.Request) (string, error) {
+	// get our session cookies
+	session, err := sessionStore.Get(r, sessionName)
+	if err != nil {
+		return "", err
+	}
+
+	// extract user context from OAuth
+	user, ok := session.GetOk(sessionUserName)
+	if !ok {
+		return "", errors.New("web session does not present user name")
+	}
+	return fmt.Sprintf("%v", user), nil
 }
 
 // NotebookHandler handles login page
@@ -197,36 +214,75 @@ func NotebookHandler(w http.ResponseWriter, r *http.Request) {
 
 // ChapRunHandler handles login page
 func ChapRunHandler(w http.ResponseWriter, r *http.Request) {
-	tmpl := makeTmpl("CHAP output")
+	tmpl := makeTmpl("CHAP pipeline")
+
+	// get user name from web session
+	user, err := getUser(r)
+	if err != nil {
+		tmpl["Error"] = err
+		tmpl["HttpCode"] = http.StatusBadRequest
+		httpResponse(w, r, tmpl)
+		return
+	}
+	tmpl["Title"] = fmt.Sprintf("CHAP pipeline (%s)", user)
+
+	// prepare notebook
 	notebook := Notebook{Host: "http://localhost:8888", Token: Config.JupyterToken}
 	fname := "Untitled.ipynb"
 	rec, err := notebook.Capture(fname)
+	if err != nil {
+		tmpl["Error"] = err
+		tmpl["HttpCode"] = http.StatusBadRequest
+		httpResponse(w, r, tmpl)
+		return
+	}
 	var lines []string
 	for _, cell := range rec.Content.Cells {
 		lines = append(lines, cell.Source)
 	}
 	log.Printf("### CHAP %+v, error %v", rec, err)
-	content := "CHAP input<br/>"
-	// TODO: I need to get user from OAuth and construct appropriate config
-	user := "test"
+	content := "CHAP pipeline<br/>"
+
+	// get reader, writer parameters
+	params, err := url.ParseQuery(r.URL.RawQuery)
+	if err != nil {
+		tmpl["Error"] = err
+		tmpl["HttpCode"] = http.StatusBadRequest
+		httpResponse(w, r, tmpl)
+		return
+	}
+	var reader, writer string
+	if values, ok := params["reader"]; ok {
+		reader = values[0]
+	}
+	if values, ok := params["writer"]; ok {
+		writer = values[0]
+	}
+
 	// generate user code
 	genUserCode(user, lines)
 
 	// generate user config
-	config := genChapConfig(user)
-	/*
-			config := `
-		pipeline:
-		  - UserProcessor: {}
-		  - common.PrintProcessor: {}
-		`
-	*/
+	config := genChapConfig(user, reader, writer)
+	content += fmt.Sprintf("<pre>%s</pre><br/>", config)
+
+	// run CHAP pipeline
 	out, err := runCHAP(user, config)
-	content += strings.Trim(strings.Join(lines, "\n"), " ")
-	content += fmt.Sprintf("Output<pre>%s</pre><br/>Error:<pre>%v</pre>", out, err)
-	log.Println("### CHAP content\n", content)
-	tmpl["Content"] = template.HTML(content)
 	tmpl["Template"] = "success.tmpl"
+	if err != nil {
+		tmpl["Error"] = err
+		tmpl["Template"] = "error.tmpl"
+	}
+
+	// prepare web response
+	userInput := strings.Trim(strings.Join(lines, "\n"), " ")
+	content += fmt.Sprintf("Input: <pre>%s</pre><br/>", userInput)
+	content += fmt.Sprintf("Output: <pre>%s</pre><br/>", out)
+	content += fmt.Sprintf("Error: <pre>%v</pre><br/>", err)
+	if Config.Verbose > 0 {
+		log.Println("### CHAP content\n", content)
+	}
+	tmpl["Content"] = template.HTML(content)
 	httpResponse(w, r, tmpl)
 }
 
