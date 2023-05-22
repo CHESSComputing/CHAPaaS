@@ -20,3 +20,19 @@ function FlipTag(tag) {
         }
     }
 }
+function AddReader(tag) {
+    var id=document.getElementById("workflow");
+    if (id) {
+        id.className="show";
+    }
+    id.innerHTML += tag;
+    id.innerHTML += "&nbsp; reader &nbsp; &rarr; &nbsp; Processor &nbsp; &rarr; &nbsp;";
+}
+function AddWriter(tag) {
+    var id=document.getElementById("workflow");
+    if (id) {
+        id.className="show";
+    }
+    id.innerHTML += tag;
+    id.innerHTML += "&nbsp; writer";
+}

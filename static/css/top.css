@@ -80,16 +80,22 @@ footer {
 }
 .show {
     display: block;
-    margin-top:6px;
-    border-top-width:1px;
+/*    margin-top:6px;*/
+/*    border-top-width:1px;*/
 }
 .show_inline {
     display: inline;
-    color: black;
-    background-color: white;
+/*    color: black;*/
+/*    background-color: white;*/
 }
 
 .submenu {
     background-color: lightgrey;
     margin-left: 5px;
+}
+.pipeline {
+    width: 500px;
+    padding-left: 20px;
+    font-weight: bold;
+    font-size: 16px;
 }
