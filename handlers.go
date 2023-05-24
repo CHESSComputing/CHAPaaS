@@ -362,7 +362,7 @@ func DocsHandler(w http.ResponseWriter, r *http.Request) {
 
 // IndexHandler handles status of CHAP server
 func IndexHandler(w http.ResponseWriter, r *http.Request) {
-	tmpl := makeTmpl("CHAP main page")
+	tmpl := makeTmpl("CHAP as a Service")
 	tmpl["Base"] = Config.Base
 	tmpl["Token"] = ""
 	top := tmplPage("top.tmpl", tmpl)
