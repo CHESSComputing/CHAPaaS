@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"time"
 )
@@ -20,12 +21,18 @@ func (n *Notebook) Capture(fname string) (NotebookRecord, error) {
 	}
 	rurl := fmt.Sprintf("%s/api/contents/%s", n.Host, fname)
 	req, err := http.NewRequest("GET", rurl, nil)
+	if Config.Verbose > 0 {
+		log.Printf("Jupyter notebook request %+v, error=%v", req, err)
+	}
 	if err != nil {
 		return rec, err
 	}
 	req.Header.Add("Accept", "application/json")
 	req.Header.Add("Authorization", fmt.Sprintf("Token %s", n.Token))
 	resp, err := client.Do(req)
+	if Config.Verbose > 0 {
+		log.Printf("Jupyter notebook response %+v, error=%v", resp, err)
+	}
 	if err != nil {
 		return rec, err
 	}
