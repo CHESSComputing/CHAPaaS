@@ -50,6 +50,7 @@ type Configuration struct {
 	// CHAP parts
 	CHAP         string `json:"chap"`          // location of CHAP executable
 	JupyterToken string `json:"jupyter_token"` // jupyter token
+	JupyterHost  string `json:"jupyter_host"`  // jupyter host:port
 }
 
 // Credentials returns provider OAuth credential record
@@ -96,6 +97,9 @@ func parseConfig(configFile string) error {
 	}
 	if Config.StorageDir == "" {
 		Config.StorageDir = "/tmp"
+	}
+	if Config.JupyterHost == "" {
+		Config.JupyterHost = "http://localhost:8888"
 	}
 	return nil
 }

@@ -207,7 +207,8 @@ func NotebookHandler(w http.ResponseWriter, r *http.Request) {
 	//     params, _ := url.ParseQuery(r.URL.RawQuery)
 	//     values, _ := params["token"]
 	//     token := values[0]
-	tmpl["Token"] = Config.JupyterToken
+	tmpl["JupyterToken"] = Config.JupyterToken
+	tmpl["JupyterHost"] = Config.JupyterHost
 	tmpl["Template"] = "notebook.tmpl"
 	httpResponse(w, r, tmpl)
 }
@@ -227,7 +228,7 @@ func ChapRunHandler(w http.ResponseWriter, r *http.Request) {
 	tmpl["Title"] = fmt.Sprintf("CHAP pipeline (%s)", user)
 
 	// prepare notebook
-	notebook := Notebook{Host: "http://localhost:8888", Token: Config.JupyterToken}
+	notebook := Notebook{Host: Config.JupyterHost, Token: Config.JupyterToken}
 	fname := "Untitled.ipynb"
 	rec, err := notebook.Capture(fname)
 	if err != nil {
