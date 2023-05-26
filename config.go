@@ -48,7 +48,9 @@ type Configuration struct {
 	StorageDir string `json:"storage_dir"` // storage directory
 
 	// CHAP parts
-	CHAP         string `json:"chap"`          // location of CHAP executable
+	ChapDir      string `json:"chap_dir"`      // CHAP install area
+	UserDir      string `json:"user_dir"`      // user directory
+	ScriptsDir   string `json:"scripts_dir"`   // scripts dir area
 	JupyterToken string `json:"jupyter_token"` // jupyter token
 	JupyterHost  string `json:"jupyter_host"`  // jupyter host:port
 }
@@ -100,6 +102,12 @@ func parseConfig(configFile string) error {
 	}
 	if Config.JupyterHost == "" {
 		Config.JupyterHost = "http://localhost:8888"
+	}
+	if Config.UserDir == "" {
+		Config.UserDir = "/tmp"
+	}
+	if Config.ScriptsDir == "" {
+		Config.ScriptsDir = "scripts"
 	}
 	return nil
 }
