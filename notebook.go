@@ -29,6 +29,8 @@ func (n *Notebook) Capture(fname string) (NotebookRecord, error) {
 	}
 	req.Header.Add("Accept", "application/json")
 	req.Header.Add("Authorization", fmt.Sprintf("Token %s", n.Token))
+	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Frame-Options
+	req.Header.Add("X-Frame-Options", "SAMEORIGIN")
 	resp, err := client.Do(req)
 	if Config.Verbose > 0 {
 		log.Printf("Jupyter notebook response %+v, error=%v", resp, err)
