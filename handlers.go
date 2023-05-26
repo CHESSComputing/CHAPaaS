@@ -260,11 +260,15 @@ func ChapRunHandler(w http.ResponseWriter, r *http.Request) {
 		writer = values[0]
 	}
 
+	// TODO: think about how dynamically pass module and processor
+	// possibly via params to avoid hardcoding
+	module := "userprocessor"
+	processor := "UserProcessor"
 	// generate user code
-	genUserCode(user, lines)
+	genUserCode(user, module, processor, lines)
 
 	// generate user config
-	config := genChapConfig(user, reader, writer)
+	config := genChapConfig(user, module, reader, writer)
 	content += fmt.Sprintf("<pre>%s</pre><br/>", config)
 
 	// run CHAP pipeline
