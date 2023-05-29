@@ -224,7 +224,7 @@ func NotebookHandler(w http.ResponseWriter, r *http.Request) {
 		FileName: "Untitled.ipynb",
 	}
 	if Config.Verbose > 0 {
-		log.Println("Notebook %+v", notebook)
+		log.Printf("Notebook %+v", notebook)
 	}
 	err = notebook.Create()
 	if err != nil {
