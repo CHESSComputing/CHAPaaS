@@ -178,6 +178,8 @@ func getUser(r *http.Request) (string, error) {
 // NotebookHandler handles login page
 func NotebookHandler(w http.ResponseWriter, r *http.Request) {
 	tmpl := makeTmpl("CHAP notebook")
+	var userName string
+	var err error
 
 	// user HTTP call should present either valid token or it will be
 	// redirected to /login end-point
@@ -199,16 +201,41 @@ func NotebookHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		userID, _ := session.GetOk(sessionUserID)
 		provider, _ := session.GetOk(sessionProvider)
-		tmpl["User"] = user.(string)
+		userName = user.(string)
+		tmpl["User"] = userName
 		tmpl["UserID"] = userID.(string)
 		tmpl["Provider"] = provider.(string)
+	} else {
+		userName, err = getUser(r)
+		if err != nil {
+			tmpl["Error"] = err
+			tmpl["HttpCode"] = http.StatusBadRequest
+			httpResponse(w, r, tmpl)
+			return
+		}
 	}
 
-	//     params, _ := url.ParseQuery(r.URL.RawQuery)
-	//     values, _ := params["token"]
-	//     token := values[0]
+	// we need to check if given notebook exists and if not we should create it
+	notebook := Notebook{
+		Host:     Config.JupyterHost,
+		Token:    Config.JupyterToken,
+		Root:     Config.JupyterRoot,
+		User:     userName,
+		FileName: "Untitled.ipynb",
+	}
+	if Config.Verbose > 0 {
+		log.Println("Notebook %+v", notebook)
+	}
+	err = notebook.Create()
+	if err != nil {
+		tmpl["Error"] = err
+		tmpl["HttpCode"] = http.StatusInternalServerError
+		httpResponse(w, r, tmpl)
+		return
+	}
 	tmpl["JupyterToken"] = Config.JupyterToken
 	tmpl["JupyterHost"] = Config.JupyterHost
+	tmpl["Notebook"] = fmt.Sprintf("/users/%s/%s", userName, notebook.FileName)
 	tmpl["Template"] = "notebook.tmpl"
 	httpResponse(w, r, tmpl)
 }
@@ -228,9 +255,15 @@ func ChapRunHandler(w http.ResponseWriter, r *http.Request) {
 	tmpl["Title"] = fmt.Sprintf("CHAP pipeline (%s)", user)
 
 	// prepare notebook
-	notebook := Notebook{Host: Config.JupyterHost, Token: Config.JupyterToken}
-	fname := "Untitled.ipynb"
-	rec, err := notebook.Capture(fname)
+	notebook := Notebook{
+		Host:     Config.JupyterHost,
+		Token:    Config.JupyterToken,
+		Root:     Config.JupyterRoot,
+		User:     user,
+		FileName: "Untitled.ipynb"}
+	tmpl["Notebook"] = notebook.FileName
+	// capture notebook content
+	rec, err := notebook.Capture()
 	if err != nil {
 		tmpl["Error"] = err
 		tmpl["HttpCode"] = http.StatusBadRequest
@@ -241,7 +274,9 @@ func ChapRunHandler(w http.ResponseWriter, r *http.Request) {
 	for _, cell := range rec.Content.Cells {
 		lines = append(lines, cell.Source)
 	}
-	log.Printf("### CHAP %+v, error %v", rec, err)
+	if Config.Verbose > 0 {
+		log.Printf("### CHAP %+v, error %v", rec, err)
+	}
 	content := "CHAP pipeline<br/>"
 
 	// get reader, writer parameters
