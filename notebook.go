@@ -1,26 +1,75 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
+	"os"
 	"time"
 )
 
+/*
+ * The JupyterRoot defines top level directory where we run Jupyter app
+ * Within this area we must create /users where we'll store each individual
+ * user notebooks. Therefore, in a code we use /api/contents/users API
+ * which includes /users path which should exist in JupyterRoot
+ * Create() api of Notebook struct will properly creats /users area within JupyterRoot area
+ */
+
 // Notebook represents jupyter notebook object
 type Notebook struct {
-	Host  string
-	Token string
+	Host     string // jupyter hostname
+	Token    string // jupyter server token
+	Root     string // jupyter root area
+	User     string // jupyter user name
+	FileName string // notebook file name
 }
 
-func (n *Notebook) Capture(fname string) (NotebookRecord, error) {
+// Create creates notebook user area and notebook file
+func (n *Notebook) Create() error {
+	// ensure that new user's area exists under JupyterRoot
+	path := fmt.Sprintf("%s/users/%s", Config.JupyterRoot, n.User)
+	if Config.Verbose > 0 {
+		log.Println("create notebook", path)
+	}
+	err := os.MkdirAll(path, 0755)
+	if err != nil {
+		return err
+	}
+
+	// create notebook file
+	// https://jupyter-server.readthedocs.io/en/latest/developers/rest-api.html
+	var jsonData = []byte(`{"type": "notebook"}`)
+	//     rurl := fmt.Sprintf("%s/api/contents/%s/%s", n.Host, n.Root, n.User)
+	rurl := fmt.Sprintf("%s/api/contents/users/%s", n.Host, n.User)
+	if Config.Verbose > 0 {
+		log.Printf("jupyter request HTTP POST %s %+v", rurl, string(jsonData))
+	}
+	rec, err := notebookCall("POST", rurl, n.Token, bytes.NewBuffer(jsonData))
+	if Config.Verbose > 0 {
+		log.Printf("jupyter response %+v, error %v", rec, err)
+	}
+	return err
+}
+
+// Capture fetches content of notebook file
+func (n *Notebook) Capture() (NotebookRecord, error) {
+	//     rurl := fmt.Sprintf("%s/api/contents/%s/%s/%s", n.Host, n.Root, n.User, n.FileName)
+	rurl := fmt.Sprintf("%s/api/contents/users/%s/%s", n.Host, n.User, n.FileName)
+	rec, err := notebookCall("GET", rurl, n.Token, nil)
+	return rec, err
+}
+
+// helper function to make API call to jupyter notebook
+func notebookCall(method, rurl, token string, body io.Reader) (NotebookRecord, error) {
 	var rec NotebookRecord
 	client := &http.Client{
 		Timeout: time.Second * 10,
 	}
-	rurl := fmt.Sprintf("%s/api/contents/%s", n.Host, fname)
-	req, err := http.NewRequest("GET", rurl, nil)
+	req, err := http.NewRequest(method, rurl, body)
 	if Config.Verbose > 0 {
 		log.Printf("Jupyter notebook request %+v, error=%v", req, err)
 	}
@@ -28,7 +77,7 @@ func (n *Notebook) Capture(fname string) (NotebookRecord, error) {
 		return rec, err
 	}
 	req.Header.Add("Accept", "application/json")
-	req.Header.Add("Authorization", fmt.Sprintf("Token %s", n.Token))
+	req.Header.Add("Authorization", fmt.Sprintf("Token %s", token))
 	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Frame-Options
 	req.Header.Add("X-Frame-Options", "SAMEORIGIN")
 	resp, err := client.Do(req)
