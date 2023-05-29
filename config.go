@@ -53,6 +53,7 @@ type Configuration struct {
 	ScriptsDir   string `json:"scripts_dir"`   // scripts dir area
 	JupyterToken string `json:"jupyter_token"` // jupyter token
 	JupyterHost  string `json:"jupyter_host"`  // jupyter host:port
+	JupyterRoot  string `json:"jupyter_root"`  // jupyter root directory
 }
 
 // Credentials returns provider OAuth credential record
@@ -101,13 +102,19 @@ func parseConfig(configFile string) error {
 		Config.StorageDir = "/tmp"
 	}
 	if Config.JupyterHost == "" {
-		Config.JupyterHost = "http://localhost:8888"
+		log.Fatal("Empty JupyterHost, please adjust your configuration")
 	}
 	if Config.UserDir == "" {
-		Config.UserDir = "/tmp"
+		log.Fatal("Empty UserDir, please adjust your configuration")
 	}
 	if Config.ScriptsDir == "" {
 		Config.ScriptsDir = "scripts"
+	}
+	if Config.JupyterRoot == "" {
+		log.Fatal("Empty JupyterRoot, please adjust your configuration")
+	}
+	if Config.ChapDir == "" {
+		log.Fatal("Empty ChapDir, please adjust your configuration")
 	}
 	return nil
 }
