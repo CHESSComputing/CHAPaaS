@@ -3,44 +3,57 @@
       <div class="grid">
           <div class="column column-6">
             <img src="{{.Base}}/images/CHAPaas_logo.png">
-            To start either use existing
+            To get started with CHAPBook, you can modify an existing
             <a href="{{.Base}}/workflows">
-                Workflow,
+                Workflow
             </a>
-            or open
+            or create a new
             <a href="{{.Base}}/notebook">
-                Notebook,
+                Notebook
             </a>
-            select your input and destination, and only write your
-            algorithm to process the data. The code versioninig,
-            packaging, debugging, profiling and integration with
-            Galaxy Science gateway will be taken care by this service.
+	    from scratch.
+            Then, select your input data and output file locations, and
+	    simply type in an
+            algorithm to process your data.<!-- CHAPBook will take care of the
+	    rest: code versioning,
+            packaging, debugging, profiling and integrating with
+            Galaxy science gateway. -->
           </div>
           <div class="column column-6">
-            <h1>CHESS Analysis Pipeline (CHAP) as a Service</h1>
-            is web based service to simplify user analysis by
-            hiding complexity of CHAP architecture, and allow to
-            follow base practices to design, maintain and distriburte
-            users code.
+            <h1>CHAPBook</h1>
+            is a web-based service that provides an easy way to build
+	    data processing workflows in the
+            <a href="https://github.com/CHESSComputing/ChessAnalysisPipeline">CHESS Analysis Pipeline (CHAP)</a>
+	    framework. It allows researchers to develop, test, run,
+	    maintain, and distribute Python algorithms via a
+            user-friendly interface that hides the complexity of the CHESS
+	    computing environment.
             <br/>
             <br/>
-            The <a href="https://github.com/CHESSComputing/ChessAnalysisPipeline">CHAP</a>
-            is Python based framework to provide plugable interface
-            to execute user workflows as a pipeline.
-            It is integrated
-            with <a href="https://galaxyproject.org">Galaxy Science gateway</a>,
-            and can be used either via code (shell) execution, within
-            Galaxy, or via CHAP as a Service interface.
+            <a href="https://github.com/CHESSComputing/ChessAnalysisPipeline">CHAP</a>
+	    workflows are assembled from re-usable Python modules.
+	    In a complete workflow, modules that handle common logistical
+	    functions, like data I/O and metadata retrieval,
+	    are attached to other modules that perform algorithmic data
+	    manipulations.
+
+	    Using CHAPBook, users can create an entire CHAP workflow simply
+	    by writing the code for their algorithm. CHAPBook will then
+	    validate that code, submit it to a repository for version
+	    control, and insert it into a CHAP template.
+
+	    CHAPBook also helps users disseminate their research materials
+	    according to <a href="https://new.nsf.gov/funding/opportunities/findable-accessible-interoperable-reusable-open">FAIR principles</a>.
+	    Using CHAPBook’s suite of publishing utilities, researchers can
+	    assign digital object identifiers to their workflows, deposit
+	    them in a
+            <a href="https://galaxyproject.org">Galaxy Science gateway</a>,
+	    and make them available for use by the scientific community.
             <br/>
             <br/>
-            CHAP as a service provides easy way to write, maintain, version,
-            publish user workflows, and make it
-            <a href="https://new.nsf.gov/funding/opportunities/findable-accessible-interoperable-reusable-open">FAIR</a>
-            (Findable Accessible Interoperable Reusable) complaint
-            without requiring any deep technical knowledge of
-            underlying technologies or structure of CHAP framework.
-            It provides web interface to write user-code and execute
-            it with CHAP.
+	    With its powerful combination of capabilities, CHAPBook is not
+	    just a computational tool. It is also an instrument of open
+	    science.
             <br/>
             <br/>
           </div>
