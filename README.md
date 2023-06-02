@@ -1,2 +1,2 @@
 # CHAPaaS
-CHAP as a Service
+CHAP as a Service repository.
