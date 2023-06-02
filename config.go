@@ -48,12 +48,13 @@ type Configuration struct {
 	StorageDir string `json:"storage_dir"` // storage directory
 
 	// CHAP parts
-	ChapDir      string `json:"chap_dir"`      // CHAP install area
-	UserDir      string `json:"user_dir"`      // user directory
-	ScriptsDir   string `json:"scripts_dir"`   // scripts dir area
-	JupyterToken string `json:"jupyter_token"` // jupyter token
-	JupyterHost  string `json:"jupyter_host"`  // jupyter host:port
-	JupyterRoot  string `json:"jupyter_root"`  // jupyter root directory
+	ChapDir       string `json:"chap_dir"`       // CHAP install area
+	UserDir       string `json:"user_dir"`       // user directory
+	ScriptsDir    string `json:"scripts_dir"`    // scripts dir area
+	JupyterToken  string `json:"jupyter_token"`  // jupyter token
+	JupyterHost   string `json:"jupyter_host"`   // jupyter host:port
+	JupyterRoot   string `json:"jupyter_root"`   // jupyter root directory
+	WorkflowsRoot string `json:"workflows_root"` // workflows directory
 }
 
 // Credentials returns provider OAuth credential record
