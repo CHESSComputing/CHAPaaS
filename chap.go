@@ -3,10 +3,14 @@ package main
 import (
 	"errors"
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
+
+	yaml "gopkg.in/yaml.v2"
 )
 
 func initUserDir(user string) error {
@@ -152,27 +156,54 @@ func genChapConfig(user, module, reader, writer string) string {
 	}
 	return config
 }
+
+// helper function to get CHAP workflows
 func getChapWorkflows() []Workflow {
 	var workflows []Workflow
-	w := Workflow{
-		UserName:    "user",
-		Name:        "SAXSWAX",
-		Type:        "saxswaxs workflow type",
-		Group:       "beamline-X",
-		Version:     "v0.0.1",
-		Description: "bla-bla-bla",
-		Reference:   "http://some.site/tomo",
+	if entries, err := os.ReadDir(Config.WorkflowsRoot); err == nil {
+		for _, entry := range entries {
+			if info, err := entry.Info(); err == nil {
+				dname := info.Name()
+				// list specific workflow directory
+				dir := filepath.Join(Config.WorkflowsRoot, dname)
+				if Config.Verbose > 0 {
+					log.Println("reading dir", dir)
+				}
+				if files, err := os.ReadDir(dir); err == nil {
+					for _, fentry := range files {
+						if finfo, err := fentry.Info(); err == nil {
+							fname := filepath.Join(dir, finfo.Name())
+							if finfo.Name() == "chap.yaml" {
+								if Config.Verbose > 0 {
+									log.Println("reading chap spec", fname)
+								}
+								file, err := os.Open(fname)
+								if err != nil {
+									log.Printf("ERROR: unable to open file %s, error %v", fname, err)
+								}
+								defer file.Close()
+								if body, err := io.ReadAll(file); err == nil {
+									var w Workflow
+									err = yaml.Unmarshal(body, &w)
+									if err == nil {
+										w.Directory = filepath.Join(Config.WorkflowsRoot, entry.Name())
+										workflows = append(workflows, w)
+									} else {
+										log.Printf("ERROR: unable to unmarshal body of file %s, error %v", fname, err)
+									}
+								} else {
+									log.Printf("ERROR: unable to read file %s, error %v", fname, err)
+								}
+							}
+						}
+					}
+				} else {
+					log.Printf("ERROR: unable to read files from %s, error %v", dir, err)
+				}
+			}
+		}
+	} else {
+		log.Println("ERROR:", err)
 	}
-	workflows = append(workflows, w)
-	w = Workflow{
-		UserName:    "user",
-		Name:        "TOMO",
-		Type:        "tomo workflow type",
-		Group:       "beamlineA",
-		Version:     "v1.2.3",
-		Description: "bla-bla-bla",
-		Reference:   "http://some.site/saxswax",
-	}
-	workflows = append(workflows, w)
 	return workflows
 }
