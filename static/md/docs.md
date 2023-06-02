@@ -13,8 +13,8 @@ over passed data
   - **Transformer** represents specific algorithm to transform given
   data from one form to another.
 
-### CHAP as a Service
-The architecture of CHAP as a Service has the following structure:
+### CHAPBook
+The architecture of CHAPBook (CHAP as a Service) has the following structure:
 ![Architecture](/images/CHAPaas_architecture.png)
 It provides simple and minimalistic web interface for end-user
 who can write their own implementation of given **Processor**.
