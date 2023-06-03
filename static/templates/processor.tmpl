@@ -12,11 +12,11 @@ class {{.UserProcessor}}(PipelineItem):
         :return: processed data
         """
         # If needed, extract data from a returned value of Reader.read
-        if isinstance(data, list):
-            if all(isinstance(d, dict) for d in data):
-                data = data[0]['data']
-        if data is None:
-            return []
+        #if isinstance(data, list):
+        #    if all(isinstance(d, dict) for d in data):
+        #        data = data[0]['data']
+        #if data is None:
+        #    return []
 
         # user code
 {{range $line := .Lines}}
