@@ -7,6 +7,7 @@ userdir=$3
 #echo "+++ chapdir $chapdir"
 #echo "+++ userdir $userdir"
 export PYTHONPATH=$chapdir/lib/python$pyver/site-packages:$chapdir/lib64/python$pyver/site-packages:$userdir
+export PYTHONPATH=$PYTHONPATH:$chapdir/venv/lib/python$pyver/site-packages
 #python -V
 #python -c "from users import *; print(UserProcessor)"
 #echo "#### start CHAP with $PYTHONPATH"
