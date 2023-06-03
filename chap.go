@@ -98,13 +98,18 @@ func genUserCode(user, module, processor string, lines []string) {
 	if err != nil {
 		log.Println("ERROR: gen user code", err)
 	}
-
 	tmpl := make(TmplRecord)
-	tmpl["Lines"] = lines
-	tmpl["UserProcessor"] = processor
-	tfile := "processor.tmpl"
 	var templates Templates
-	content := templates.TextTmpl(tfile, tmpl)
+	var content string
+	userCode := strings.Join(lines, "\n")
+	if strings.Contains(userCode, "class UserProcessor") {
+		content = userCode
+	} else {
+		tmpl["Lines"] = lines
+		tmpl["UserProcessor"] = processor
+		tfile := "processor.tmpl"
+		content = templates.TextTmpl(tfile, tmpl)
+	}
 	tdir := fmt.Sprintf("%s/%s", Config.UserDir, user)
 	err = os.MkdirAll(fmt.Sprintf("%s/%s", Config.UserDir, user), 0755)
 	if err != nil {
@@ -127,6 +132,44 @@ func genUserCode(user, module, processor string, lines []string) {
 }
 
 // helper function to generate CHAP config based on user workflow
+func genWorkflowConfig(user, module, workflow string) string {
+	var config string
+	for _, w := range chapWorkflows.getWorkflows() {
+		if w.Name == workflow {
+			fname := filepath.Join(w.Directory, w.Config)
+			file, err := os.Open(fname)
+			if err != nil {
+				log.Printf("ERROR: unable to locate %s", fname)
+				break
+			}
+			defer file.Close()
+			if body, err := io.ReadAll(file); err == nil {
+				config = string(body)
+				break
+			} else {
+				log.Printf("ERROR: unable to read %s, error %v", fname, err)
+			}
+		}
+	}
+	if Config.Verbose > 0 {
+		log.Println("workflow config\n", config)
+	}
+	// TODO: properly handle yaml data by unmarshal it to pipeline
+	// struct and add new config entry to it, e.g.
+	/*
+		// convert config to yaml data
+		var pipeline map[string]interface{}
+		if err = yaml.Unmarshal(body, &p); err == nil {
+		}
+	*/
+	config += fmt.Sprintf("  - users.%s.%s.UserProcessor: {}\n", user, module)
+	return config
+}
+
+type Pipeline struct {
+}
+
+// helper function to generate CHAP config based on given reader/writer
 func genChapConfig(user, module, reader, writer string) string {
 	config := "pipeline:\n"
 	reader = strings.ToLower(reader)
@@ -152,7 +195,7 @@ func genChapConfig(user, module, reader, writer string) string {
 	   `
 	*/
 	if Config.Verbose > 0 {
-		log.Println("genChapConfog:\n", config)
+		log.Println("genChapConfig:\n", config)
 	}
 	return config
 }
