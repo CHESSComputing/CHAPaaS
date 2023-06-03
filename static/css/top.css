@@ -29,6 +29,16 @@ article {
   width:100%;
   min-height: 600px;
 }
+.notebook {
+  float: left;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  padding-left: 100px;
+  padding-right: 100px;
+  background-color: #f1f1f1;
+  width:100%;
+  min-height: 600px;
+}
 
 /* Clear floats after the columns */
 section:after {
