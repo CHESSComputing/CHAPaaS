@@ -236,6 +236,7 @@ func NotebookHandler(w http.ResponseWriter, r *http.Request) {
 	tmpl["JupyterToken"] = Config.JupyterToken
 	tmpl["JupyterHost"] = Config.JupyterHost
 	tmpl["Notebook"] = fmt.Sprintf("/users/%s/%s", userName, notebook.FileName)
+	tmpl["Workflows"] = chapWorkflows.getWorkflows()
 	tmpl["Template"] = "notebook.tmpl"
 	httpResponse(w, r, tmpl)
 }
@@ -277,7 +278,7 @@ func ChapRunHandler(w http.ResponseWriter, r *http.Request) {
 	if Config.Verbose > 0 {
 		log.Printf("### CHAP %+v, error %v", rec, err)
 	}
-	content := "CHAP pipeline<br/>"
+	content := "<h1>CHAP pipeline</h1><br/>"
 
 	// get reader, writer parameters
 	params, err := url.ParseQuery(r.URL.RawQuery)
@@ -287,12 +288,15 @@ func ChapRunHandler(w http.ResponseWriter, r *http.Request) {
 		httpResponse(w, r, tmpl)
 		return
 	}
-	var reader, writer string
+	var reader, writer, workflow string
 	if values, ok := params["reader"]; ok {
 		reader = values[0]
 	}
 	if values, ok := params["writer"]; ok {
 		writer = values[0]
+	}
+	if values, ok := params["chapworkflow"]; ok {
+		workflow = values[0]
 	}
 
 	// TODO: think about how dynamically pass module and processor
@@ -303,22 +307,33 @@ func ChapRunHandler(w http.ResponseWriter, r *http.Request) {
 	genUserCode(user, module, processor, lines)
 
 	// generate user config
-	config := genChapConfig(user, module, reader, writer)
+	var config string
+	if Config.Verbose > 0 {
+		log.Printf("### GENERATE NOTEBOOK workflow, workflow=%s reader=%s writer=%s", workflow, reader, writer)
+	}
+	if workflow != "" {
+		config = genWorkflowConfig(user, module, workflow)
+	} else {
+		config = genChapConfig(user, module, reader, writer)
+	}
 	content += fmt.Sprintf("<pre>%s</pre><br/>", config)
 
 	// run CHAP pipeline
 	out, err := runCHAP(user, config)
-	tmpl["Template"] = "success.tmpl"
 	if err != nil {
 		tmpl["Error"] = err
 		tmpl["Template"] = "error.tmpl"
+	} else {
+		tmpl["Template"] = "success.tmpl"
 	}
 
 	// prepare web response
 	userInput := strings.Trim(strings.Join(lines, "\n"), " ")
-	content += fmt.Sprintf("Input: <pre>%s</pre><br/>", userInput)
-	content += fmt.Sprintf("Output: <pre>%s</pre><br/>", out)
-	content += fmt.Sprintf("Error: <pre>%v</pre><br/>", err)
+	content += fmt.Sprintf("<h2>Input:</h2> <pre>%s</pre><br/>", userInput)
+	content += fmt.Sprintf("<h2>Output:</h2> <pre>%s</pre><br/>", out)
+	if err != nil {
+		content += fmt.Sprintf("Error: <pre>%v</pre><br/>", err)
+	}
 	if Config.Verbose > 0 {
 		log.Println("### CHAP content\n", content)
 	}
