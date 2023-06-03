@@ -278,7 +278,7 @@ func ChapRunHandler(w http.ResponseWriter, r *http.Request) {
 	if Config.Verbose > 0 {
 		log.Printf("### CHAP %+v, error %v", rec, err)
 	}
-	content := "<h1>CHAP pipeline</h1><br/>"
+	content := "\n<h1>CHAP pipeline</h1><br/>\n"
 
 	// get reader, writer parameters
 	params, err := url.ParseQuery(r.URL.RawQuery)
@@ -316,7 +316,7 @@ func ChapRunHandler(w http.ResponseWriter, r *http.Request) {
 	} else {
 		config = genChapConfig(user, module, reader, writer)
 	}
-	content += fmt.Sprintf("<pre>%s</pre><br/>", config)
+	content += fmt.Sprintf("\n<pre>\n%s\n</pre><br/>\n", config)
 
 	// run CHAP pipeline
 	out, err := runCHAP(user, config)
@@ -329,10 +329,10 @@ func ChapRunHandler(w http.ResponseWriter, r *http.Request) {
 
 	// prepare web response
 	userInput := strings.Trim(strings.Join(lines, "\n"), " ")
-	content += fmt.Sprintf("<h2>Input:</h2> <pre>%s</pre><br/>", userInput)
-	content += fmt.Sprintf("<h2>Output:</h2> <pre>%s</pre><br/>", out)
+	content += fmt.Sprintf("\n<h2>Input:</h2>\n<pre>\n%s\n</pre><br/>\n", userInput)
+	content += fmt.Sprintf("\n<h2>Output:</h2>\n<pre>\n%s\n</pre><br/>\n", out)
 	if err != nil {
-		content += fmt.Sprintf("Error: <pre>%v</pre><br/>", err)
+		content += fmt.Sprintf("\n<h2>Error:</h2>\n<pre>\n%v\n</pre><br/>\n", err)
 	}
 	if Config.Verbose > 0 {
 		log.Println("### CHAP content\n", content)
