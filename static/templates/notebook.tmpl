@@ -1,13 +1,15 @@
 <section>
   <div class="notebook">
     <h1>CHAP Notebook</h1>
+    <div class="pipeline">
     <div class="hide" id="workflow" name="workflow">
-        <div class="pipeline" id="pipeline" name="pipeline"></div>
+        <div id="pipeline" name="pipeline"></div>
         <input type="hidden" id="reader" name="reader" value="" />
         <input type="hidden" id="writer" name="writer" value="" />
         <input type="hidden" id="chapworkflow" name="chapworkflow" value="" />
         <input type="hidden" id="token" name="token" value="{{.JupyterToken}}" />
         <input type="hidden" id="base" name="base" value="{{.Base}}" />
+    </div>
     </div>
 
     <div class="grid">
