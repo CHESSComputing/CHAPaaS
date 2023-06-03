@@ -20,6 +20,16 @@ function FlipTag(tag) {
         }
     }
 }
+function AddWorkflow(tag) {
+    var id=document.getElementById("workflow");
+    if (id) {
+        id.className="show";
+    }
+    id.innerHTML += tag;
+    id.innerHTML += "&nbsp; workflow";
+    // update hidden chap input
+    document.getElementById("chapworkflow").value = tag;
+}
 function AddReader(tag) {
     var id=document.getElementById("workflow");
     if (id) {
@@ -53,6 +63,11 @@ function RunCHAP() {
     if (id) {
         writer = "&writer="+id.value;
         rurl += writer;
+    }
+    var id=document.getElementById("chapworkflow");
+    if (id) {
+        workflow = "&chapworkflow="+id.value;
+        rurl += workflow;
     }
     console.log("will call "+rurl);
     // execute rurl call to our server
