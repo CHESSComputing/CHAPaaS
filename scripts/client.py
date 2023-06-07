@@ -34,8 +34,26 @@ print("response:", response.text)
 
 # create new notebook
 url = base + '/api/contents/users/vkuznet'
-body={"type": "notebook"}
-response = requests.post(url, headers=headers)
-# response = requests.post(url, headers=headers, json=body)
-print("response:", response.text)
+# url = base + '/api/contents'
+cells = [
+        {"cell_type":"markdown", "source": "### Welcome to CHAP notebook.", 'metadata': {}},
+        {"cell_type":"markdown", "source": "CHAP provides you data", 'metadata': {}}
+        ]
+content = {"cells":cells, 'metadata': {}, 'nbformat': 4, 'nbformat_minor': 4}
+name = "notebook.ipynb"
+body={"type": "notebook",
+      "content": content,
+      "name": name,
+      "path": name,
+      "format": "json",
+      "created": "2023-06-07T17:34:22.234793Z",
+      "last_modified": "2023-06-07T17:34:22.234793Z",
+      'mimetype': None,
+      'writable': True}
+import pprint
+pprint.pprint(body)
+headers["Content-Type"] = "application/json"
+# response = requests.post(url, headers=headers, )
+response = requests.put(url + '/' + name, headers=headers, json=body)
+print("response:", response.text, response.status_code)
 # file = json.loads(response.text)
