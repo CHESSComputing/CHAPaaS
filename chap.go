@@ -105,7 +105,12 @@ func genUserCode(user, module, processor string, lines []string) {
 	if strings.Contains(userCode, "class UserProcessor") {
 		content = userCode
 	} else {
-		tmpl["Lines"] = lines
+		var newLines []string
+		for _, line := range lines {
+			newLine := strings.Replace(line, "\n", "\n        ", -1)
+			newLines = append(newLines, newLine)
+		}
+		tmpl["Lines"] = newLines
 		tmpl["UserProcessor"] = processor
 		tfile := "processor.tmpl"
 		content = templates.TextTmpl(tfile, tmpl)
