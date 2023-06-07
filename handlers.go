@@ -221,7 +221,7 @@ func NotebookHandler(w http.ResponseWriter, r *http.Request) {
 		Token:    Config.JupyterToken,
 		Root:     Config.JupyterRoot,
 		User:     userName,
-		FileName: "Untitled.ipynb",
+		FileName: "userprocessor.ipynb",
 	}
 	if Config.Verbose > 0 {
 		log.Printf("Notebook %+v", notebook)
@@ -261,7 +261,7 @@ func ChapRunHandler(w http.ResponseWriter, r *http.Request) {
 		Token:    Config.JupyterToken,
 		Root:     Config.JupyterRoot,
 		User:     user,
-		FileName: "Untitled.ipynb"}
+		FileName: "userprocessor.ipynb"}
 	tmpl["Notebook"] = notebook.FileName
 	// capture notebook content
 	rec, err := notebook.Capture()
