@@ -74,12 +74,19 @@ func (n *Notebook) Create() error {
 
 	// create notebook file if it does not exist
 	// https://jupyter-server.readthedocs.io/en/latest/developers/rest-api.html
-	var jsonData = []byte(`{"type": "notebook"}`)
-	rurl = fmt.Sprintf("%s/api/contents/users/%s", n.Host, n.User)
+	tmpl := make(TmplRecord)
+	tmpl["User"] = n.User
+	tmpl["Name"] = n.FileName
+	tmpl["Created"] = time.Now().Format(time.RFC3339)
+	jsonData := []byte(tmplPage("userprocessor.tmpl", tmpl))
+	if Config.Verbose > 0 {
+		log.Println("json data", string(jsonData))
+	}
+	rurl = fmt.Sprintf("%s/api/contents/users/%s/%s", n.Host, n.User, n.FileName)
 	if Config.Verbose > 0 {
 		log.Printf("HTTP POST %s %+v", rurl, string(jsonData))
 	}
-	rec, err = notebookCall("POST", rurl, n.Token, bytes.NewBuffer(jsonData))
+	rec, err = notebookCall("PUT", rurl, n.Token, bytes.NewBuffer(jsonData))
 	if Config.Verbose > 0 {
 		log.Printf("jupyter response %+v, error %v", rec, err)
 	}
