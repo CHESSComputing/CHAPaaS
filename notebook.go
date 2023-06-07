@@ -73,7 +73,17 @@ func (n *Notebook) Create() error {
 	}
 
 	// create notebook file if it does not exist
-	// https://jupyter-server.readthedocs.io/en/latest/developers/rest-api.html
+	/*
+		server API description:
+		https://jupyter-server.readthedocs.io/en/latest/developers/rest-api.html
+
+		notebok content description:
+		https://jupyter-notebook.readthedocs.io/en/stable/extending/contents.html
+
+		nbformat description:
+		https://nbformat.readthedocs.io/en/latest/format_description.html
+	*/
+	// we will use template for JSON notebook initial content data
 	tmpl := make(TmplRecord)
 	tmpl["User"] = n.User
 	tmpl["Name"] = n.FileName
