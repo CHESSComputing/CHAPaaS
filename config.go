@@ -24,11 +24,12 @@ type OAuthRecord struct {
 // Configuration stores server configuration parameters
 type Configuration struct {
 	// web server parts
-	Base      string `json:"base"`       // base URL
-	LogFile   string `json:"log_file"`   // server log file
-	Port      int    `json:"port"`       // server port number
-	Verbose   int    `json:"verbose"`    // verbose output
-	StaticDir string `json:"static_dir"` // speficy static dir location
+	Base        string `json:"base"`         // base URL
+	LogFile     string `json:"log_file"`     // server log file
+	Port        int    `json:"port"`         // server port number
+	Verbose     int    `json:"verbose"`      // verbose output
+	StaticDir   string `json:"static_dir"`   // speficy static dir location
+	RedirectURL string `json:"redirect_url"` // redirect URL for OAuth provider
 
 	// OAuth parts
 	OAuth []OAuthRecord `json:"oauth"` // oauth configurations
@@ -116,6 +117,13 @@ func parseConfig(configFile string) error {
 	}
 	if Config.ChapDir == "" {
 		log.Fatal("Empty ChapDir, please adjust your configuration")
+	}
+	if Config.RedirectURL == "" {
+		if host, err := os.Hostname(); err == nil {
+			Config.RedirectURL = fmt.Sprintf("http://%s:%d%s/github/callback", host, Config.Port, Config.Base)
+		} else {
+			Config.RedirectURL = fmt.Sprintf("http://localhost:%d%s/github/callback", Config.Port, Config.Base)
+		}
 	}
 	return nil
 }

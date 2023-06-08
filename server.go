@@ -73,7 +73,7 @@ func bunRouter() *bunrouter.CompatRouter {
 	config := &oauth2.Config{
 		ClientID:     arec.ClientID,
 		ClientSecret: arec.ClientSecret,
-		RedirectURL:  fmt.Sprintf("http://localhost:%d%s/github/callback", Config.Port, Config.Base),
+		RedirectURL:  Config.RedirectURL,
 		Endpoint:     githubOAuth2.Endpoint,
 	}
 	stateConfig := gologin.DebugOnlyCookieConfig
