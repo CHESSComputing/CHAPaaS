@@ -73,8 +73,9 @@ func bunRouter() *bunrouter.CompatRouter {
 	config := &oauth2.Config{
 		ClientID:     arec.ClientID,
 		ClientSecret: arec.ClientSecret,
-		RedirectURL:  Config.RedirectURL,
-		Endpoint:     githubOAuth2.Endpoint,
+		RedirectURL:  fmt.Sprintf("%s/github/callback", Config.RedirectURL),
+		// RedirectURL:  fmt.Sprintf("http://localhost:%d%s/github/callback", Config.Port, Config.Base),
+		Endpoint: githubOAuth2.Endpoint,
 	}
 	stateConfig := gologin.DebugOnlyCookieConfig
 	githubLogin := gologinHandler(config, github.StateHandler(stateConfig, github.LoginHandler(config, nil)))
