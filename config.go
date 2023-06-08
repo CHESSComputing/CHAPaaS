@@ -124,6 +124,7 @@ func parseConfig(configFile string) error {
 		} else {
 			Config.RedirectURL = fmt.Sprintf("http://localhost:%d%s/github/callback", Config.Port, Config.Base)
 		}
+		log.Println("RedirectURL", Config.RedirectURL)
 	}
 	return nil
 }
