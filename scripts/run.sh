@@ -1,5 +1,18 @@
 #!/bin/bash
 
+# delete previous processes
+cpid=`ps auxww | grep "chapaas -config" | grep -v grep | awk '{print $2}'`
+if [ -n "$cpid" ]; then
+    echo "kill previous chapaas process $cpid"
+    kill -9 $cpid
+fi
+jpid=`ps auxww | grep "jupyter-notebook --config" | grep -v grep | awk '{print $2}'`
+if [ -n "$jpid" ]; then
+    echo "kill previous jupyter-notebook process $jpid"
+    kill -9 $jpid
+fi
+
+
 # create proper environment
 idir=/home/chess_chapaas/chess/CHAPaaS
 jdir=$idir/jupyter
