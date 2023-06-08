@@ -40,7 +40,8 @@ func addUserProcessor(user, module, processor string) {
 	}
 	file, err := os.OpenFile(fname, os.O_RDWR|os.O_APPEND, 0660)
 	if err != nil {
-		log.Fatal(err)
+		log.Println("ERROR: unable to open", fname, err)
+		retrun
 	}
 	defer file.Close()
 	scanner := bufio.NewScanner(file)

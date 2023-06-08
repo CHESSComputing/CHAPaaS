@@ -102,7 +102,8 @@ func LogName() string {
 func mdToHTML(fname string) (string, error) {
 	file, err := os.Open(fname)
 	if err != nil {
-		log.Fatal(err)
+		log.Println("ERROR: unable to open", fname, err)
+		return "", err
 	}
 	defer file.Close()
 	var md []byte
