@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # create proper environment
-idir=/home/vk/chess/CHAPaaS
+idir=/home/chess_chapaas/chess/CHAPaaS
 jdir=$idir/jupyter
 cdir=$idir/chap
 unset PYTHONPATH
