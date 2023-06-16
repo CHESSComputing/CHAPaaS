@@ -50,10 +50,13 @@ function AddWriter(tag) {
     // update hidden chap input
     document.getElementById("writer").value += tag;
 }
-function RunCHAP() {
+function RunCHAP(profile) {
     var bid=document.getElementById("base");
     var tid=document.getElementById("token");
     rurl = bid.value+"/chap/run?token="+tid.value;
+    if (profile == "profile") {
+        rurl = bid.value+"/chap/profile?token="+tid.value;
+    }
     var id=document.getElementById("reader");
     if (id) {
         reader = "&reader="+id.value;
