@@ -14,6 +14,8 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"os/exec"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -129,7 +131,7 @@ func gologinHandler(config *oauth2.Config, next http.Handler) http.Handler {
 	})
 }
 
-// FaviconHandler
+// FaviconHandler handles favicon icon
 func FaviconHandler(w http.ResponseWriter, r *http.Request) {
 	http.ServeFile(w, r, fmt.Sprintf("%s/images/favicon.ico", Config.StaticDir))
 }
@@ -177,7 +179,7 @@ func getUser(r *http.Request) (string, error) {
 	return fmt.Sprintf("%v", user), nil
 }
 
-// NotebookHandler handles login page
+// NotebookHandler handles notebook page
 func NotebookHandler(w http.ResponseWriter, r *http.Request) {
 	tmpl := makeTmpl("CHAP notebook")
 	var userName string
@@ -243,7 +245,7 @@ func NotebookHandler(w http.ResponseWriter, r *http.Request) {
 	httpResponse(w, r, tmpl)
 }
 
-// ChapRunHandler handles login page
+// ChapRunHandler handles CHAP run page
 func ChapRunHandler(w http.ResponseWriter, r *http.Request) {
 	tmpl := makeTmpl("CHAP pipeline")
 
@@ -365,23 +367,41 @@ func ChapRunHandler(w http.ResponseWriter, r *http.Request) {
 	httpResponse(w, r, tmpl)
 }
 
-// ChapProfileHandler handles login page
+// ChapProfileHandler handles CHAP profile page
 func ChapProfileHandler(w http.ResponseWriter, r *http.Request) {
 	// set profiler HTTP header
 	r.Header.Set("profile", "true")
 	ChapRunHandler(w, r)
 }
 
-// ChapPublishHandler handles login page
+// ChapPublishHandler handles publishing page
 func ChapPublishHandler(w http.ResponseWriter, r *http.Request) {
-	// TODO: need implementation, should publish CHAP user workflow
-	// into user repository (separate from CHAP) and
-	// later include user workflow into list of supported workflows
-	// and publish new chap release to Galaxy
-	ChapRunHandler(w, r)
+	tmpl := makeTmpl("CHAP publishing")
+	var userName string
+	var err error
+	userName, err = getUser(r)
+	if err != nil {
+		tmpl["Error"] = err
+		tmpl["HttpCode"] = http.StatusBadRequest
+		httpResponse(w, r, tmpl)
+		return
+	}
+	cmd := fmt.Sprintf("%s/publish.sh", Config.ScriptsDir)
+	notebook := filepath.Join(Config.UserDir, userName)
+	log.Printf("### publish: cmd=%s notebook=%s", cmd, notebook)
+	out, err := exec.Command(cmd, notebook).Output()
+	if err != nil {
+		tmpl["Error"] = err
+		tmpl["Template"] = "error.tmpl"
+	} else {
+		tmpl["Template"] = "success.tmpl"
+	}
+	content := fmt.Sprintf("\n<h2>Publish output:</h2>\n<pre>\n%s\n</pre><br/>\n", out)
+	tmpl["Content"] = template.HTML(content)
+	httpResponse(w, r, tmpl)
 }
 
-// WorkflowsHandler handles login page
+// WorkflowsHandler handles workflow page
 func WorkflowsHandler(w http.ResponseWriter, r *http.Request) {
 	tmpl := makeTmpl("CHAP workflows")
 	// TODO: get list of workflows from user repository and
@@ -400,7 +420,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	httpResponse(w, r, tmpl)
 }
 
-// AccessHandler handles login page
+// AccessHandler handles access page
 func AccessHandler(w http.ResponseWriter, r *http.Request) {
 	tmpl := makeTmpl("CHAP access")
 
@@ -425,7 +445,7 @@ func AccessHandler(w http.ResponseWriter, r *http.Request) {
 	httpResponse(w, r, tmpl)
 }
 
-// DocsHandler handles status of CHAP server
+// DocsHandler handles documentation page
 func DocsHandler(w http.ResponseWriter, r *http.Request) {
 	tmpl := makeTmpl("CHAP documentation")
 	fname := fmt.Sprintf("%s/md/docs.md", Config.StaticDir)
@@ -439,7 +459,7 @@ func DocsHandler(w http.ResponseWriter, r *http.Request) {
 	httpResponse(w, r, tmpl)
 }
 
-// IndexHandler handles status of CHAP server
+// IndexHandler handles CHAPBook index (main) page
 func IndexHandler(w http.ResponseWriter, r *http.Request) {
 	tmpl := makeTmpl("CHAPBook")
 	tmpl["Base"] = Config.Base
