@@ -9,9 +9,11 @@ import (
 	"errors"
 	"fmt"
 	"html/template"
+	"io"
 	"log"
 	"net/http"
 	"net/url"
+	"os"
 	"strings"
 	"time"
 
@@ -318,8 +320,11 @@ func ChapRunHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	content += fmt.Sprintf("\n<pre>\n%s\n</pre><br/>\n", config)
 
+	// read profile flag from the HTTP header
+	profile := r.Header.Get("profile")
+
 	// run CHAP pipeline
-	out, err := runCHAP(user, config)
+	out, err := runCHAP(user, config, profile)
 	if err != nil {
 		tmpl["Error"] = err
 		tmpl["Template"] = "error.tmpl"
@@ -338,18 +343,37 @@ func ChapRunHandler(w http.ResponseWriter, r *http.Request) {
 		log.Println("### CHAP content\n", content)
 	}
 	tmpl["Content"] = template.HTML(content)
+
+	// check if profile output is present
+	// TODO: to handle multiple users we should probably provide
+	// ability to specify user's profile file name
+	// so far we'll use default one
+	fname := "profile.dat"
+	if _, err := os.Stat(fname); errors.Is(err, os.ErrExist) {
+		file, err := os.Open(fname)
+		if err != nil {
+			log.Println("ERROR:", err)
+		}
+		defer file.Close()
+		if data, err := io.ReadAll(file); err == nil {
+			content += fmt.Sprintf("\n<h2>Profile info:</h2>\n<pre>\n%v</pre><br/>\n", string(data))
+		} else {
+			log.Println("ERROR:", err)
+		}
+	}
+
 	httpResponse(w, r, tmpl)
 }
 
 // ChapProfileHandler handles login page
 func ChapProfileHandler(w http.ResponseWriter, r *http.Request) {
-	// TODO: need implementation to run CHAP in profile mode
-	// and then capture profile output and present it in graphical mode
+	// set profiler HTTP header
+	r.Header.Set("profile", "true")
 	ChapRunHandler(w, r)
 }
 
-// PublishHandler handles login page
-func PublishHandler(w http.ResponseWriter, r *http.Request) {
+// ChapPublishHandler handles login page
+func ChapPublishHandler(w http.ResponseWriter, r *http.Request) {
 	// TODO: need implementation, should publish CHAP user workflow
 	// into user repository (separate from CHAP) and
 	// later include user workflow into list of supported workflows
