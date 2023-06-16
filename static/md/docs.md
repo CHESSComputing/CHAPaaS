@@ -1,4 +1,4 @@
-# CHAP documentation
+# CHAP as a Service
 CHAP stans for CHess Analysis Pipeline framework. It is Python based
 framework with the following components:
 - **Reader** represents an object which performs input read operation
@@ -12,6 +12,7 @@ over passed data
   data into specific visualized form
   - **Transformer** represents specific algorithm to transform given
   data from one form to another.
+
 
 ### CHAPBook
 The architecture of CHAPBook (CHAP as a Service) has the following structure:
@@ -46,3 +47,6 @@ CHAPBook workflow consists of the following:
 - the **Publish** action will publish user processor to remote repository
   - we plan to add versioning control
   - we want to publish user's conde on [Zenodo](https://zenodo.org/)
+
+
+
