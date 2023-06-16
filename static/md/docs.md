@@ -13,6 +13,7 @@ over passed data
   - **Transformer** represents specific algorithm to transform given
   data from one form to another.
 
+---
 
 ### CHAPBook
 The architecture of CHAPBook (CHAP as a Service) has the following structure:
@@ -48,5 +49,19 @@ CHAPBook workflow consists of the following:
   - we plan to add versioning control
   - we want to publish user's conde on [Zenodo](https://zenodo.org/)
 
+---
+
+### CHAPBook APIs
+The CHAPBook service supports the following set of APIs:
+- `/login` to authentication user with GitHub
+- `/access` to obtain access token
+- `/docs` provides user's documentation
+- `/notebook` provides user's notebook page
+- `/workflows` provides access to existing/supporting CHAP workflows
+- `/chap/run` to run CHAP workflow
+- `/chap/profile` to run run CHAP workflow in profile mode
+- `/chap/publish` to publish CHAP user based code
+
+---
 
 
