@@ -61,7 +61,7 @@ func addUserProcessor(user, module, processor string) {
 */
 
 // helper function to run CHAP pipeline
-func runCHAP(user, config string) ([]byte, error) {
+func runCHAP(user, config, profile string) ([]byte, error) {
 	var out []byte
 	var err error
 	fname := fmt.Sprintf("%s/%s/chap.yaml", Config.UserDir, user)
@@ -86,8 +86,8 @@ func runCHAP(user, config string) ([]byte, error) {
 	// user dir in configuration contains /users suffix
 	// but for running chap.sh script we should strip it off
 	userDir := strings.Replace(Config.UserDir, "/users", "", -1)
-	log.Println("### runCHAP:", cmd, fname, Config.ChapDir, userDir)
-	out, err = exec.Command(cmd, fname, Config.ChapDir, userDir).Output()
+	log.Printf("### runCHAP: cmd=%s file=%s chapDir=%s userDir=%s profile=%s", cmd, fname, Config.ChapDir, userDir, profile)
+	out, err = exec.Command(cmd, fname, Config.ChapDir, userDir, profile).Output()
 	return out, err
 }
 
