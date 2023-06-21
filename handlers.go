@@ -122,9 +122,12 @@ func gologinHandler(config *oauth2.Config, next http.Handler) http.Handler {
 		referer := r.Referer()
 		if referer != "" && strings.Contains(referer, "redirect=") {
 			// modify oauth config RedirectURL with our referrer value
-			arr := strings.Split(referer, "redirect=")
-			api := arr[1]
-			config.RedirectURL = fmt.Sprintf("%s?redirect=%s", config.RedirectURL, api)
+			// if it does not contain redirect part
+			if !strings.Contains(config.RedirectURL, "redirect=") {
+				arr := strings.Split(referer, "redirect=")
+				api := arr[1]
+				config.RedirectURL = fmt.Sprintf("%s?redirect=%s", config.RedirectURL, api)
+			}
 		}
 		// Call the next handler
 		next.ServeHTTP(w, r)
