@@ -391,8 +391,8 @@ func ChapPublishHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	cmd := fmt.Sprintf("%s/publish.sh", Config.ScriptsDir)
 	notebook := filepath.Join(Config.UserDir, userName)
-	log.Printf("### publish: cmd=%s notebook=%s", cmd, notebook)
-	out, err := exec.Command(cmd, notebook).Output()
+	log.Printf("### publish: cmd=%s notebook=%s userDir=%s userRepo=%s", cmd, notebook, Config.UserRepo)
+	out, err := exec.Command(cmd, notebook, Config.UserRepo).Output()
 	if err != nil {
 		tmpl["Error"] = err
 		tmpl["Template"] = "error.tmpl"
