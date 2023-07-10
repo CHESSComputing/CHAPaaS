@@ -111,7 +111,7 @@ func parseConfig(configFile string) error {
 		log.Fatal("Empty UserDir, please adjust your configuration")
 	}
 	if Config.UserRepo == "" {
-		Config.UserRepo = "CHAPUsers"
+		log.Fatal("Empty UserRepo, please adjust your configuration")
 	}
 	if Config.ScriptsDir == "" {
 		Config.ScriptsDir = "scripts"
