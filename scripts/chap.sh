@@ -1,4 +1,10 @@
 #!/bin/bash
+#
+# check user input
+if [ $# -ne 4 ]; then
+    echo "Not enough arguments, usage: chap.sh <config> <chap-dir> <user-dir> <profile>"
+    exit 1;
+fi
 pyver=`python -V | awk '{split($2,a,"."); print ""a[1]"."a[2]""}'`
 config=$1
 chapdir=$2
