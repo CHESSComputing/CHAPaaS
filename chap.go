@@ -83,9 +83,13 @@ func runCHAP(user, config, profile string) ([]byte, error) {
 	file.Write([]byte(config))
 	// run CHAP pipeline
 	cmd := fmt.Sprintf("%s/chap.sh", Config.ScriptsDir)
-	// user dir in configuration contains /users suffix
+	// user dir in configuration contains /<Config.UserRepo> suffix
 	// but for running chap.sh script we should strip it off
-	userDir := strings.Replace(Config.UserDir, "/users", "", -1)
+	userRepo := Config.UserRepo
+	if !strings.HasPrefix(userRepo, "/") {
+		userRepo = "/" + Config.UserRepo
+	}
+	userDir := strings.Replace(Config.UserDir, userRepo, "", -1)
 	log.Printf("### runCHAP: cmd=%s file=%s chapDir=%s userDir=%s profile=%s", cmd, fname, Config.ChapDir, userDir, profile)
 	out, err = exec.Command(cmd, fname, Config.ChapDir, userDir, profile).Output()
 	return out, err
@@ -168,7 +172,7 @@ func genWorkflowConfig(user, module, workflow string) string {
 		if err = yaml.Unmarshal(body, &p); err == nil {
 		}
 	*/
-	config += fmt.Sprintf("  - users.%s.%s.UserProcessor: {}\n", user, module)
+	config += fmt.Sprintf("  - %s.%s.%s.UserProcessor: {}\n", Config.UserRepo, user, module)
 	return config
 }
 
@@ -186,7 +190,7 @@ func genChapConfig(user, module, reader, writer string) string {
 		config += "  - common.NexuReader: {}"
 	}
 	//config += "  - UserProcessor: {}\n  - common.PrintProcessor: {}"
-	config += fmt.Sprintf("  - users.%s.%s.UserProcessor: {}\n", user, module)
+	config += fmt.Sprintf("  - %s.%s.%s.UserProcessor: {}\n", Config.UserRepo, user, module)
 	config += "  - common.PrintProcessor: {}\n"
 	if writer == "yaml" {
 		config += "  - common.YAMLWriter: {}"
