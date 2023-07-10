@@ -46,8 +46,8 @@ CHAPBook workflow consists of the following:
   - it creates correspoding pipeline yaml configuration file
   - it executes user's processor via CHAP pipeline
 - the **Publish** action will publish user processor to remote repository
-  - we plan to add versioning control
-  - we want to publish user's conde on [Zenodo](https://zenodo.org/)
+  - via `rsync` to specified user repository (e.g. [CHAPUsers](https://github.com/CHESSComputing/CHAPUsers))
+  - and, publishing user's conde on [Zenodo](https://zenodo.org/)
 
 ---
 
