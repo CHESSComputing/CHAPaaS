@@ -21,7 +21,7 @@ owner="CHESSComputing"
 
 # see: https://docs.github.com/en/rest/releases/releases?apiVersion=2022-11-28
 payload=$(printf '{"tag_name": "$tag","target_commitish": "main","name": "$tag","body": "$notes","draft": false, "prerelease": false}')
-curl -L \
+curl -k -s -L \
   -H "Accept: application/vnd.github+json" \
   -H "Authorization: Bearer $token"\
   -H "X-GitHub-Api-Version: 2022-11-28" \
