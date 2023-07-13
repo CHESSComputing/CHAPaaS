@@ -15,7 +15,7 @@ echo "Create release:"
 echo "Directory     : $dir"
 echo "Tag           : $tag"
 echo "Notes         : $notes"
-payload=$(printf '{"tag_name": "%s","target_commitish": "main","name": "%s","body": "%s","draft": false,"prerelease": false}' $tag $tag "$notes")
+payload=$(printf '{"tag_name": "%s","target_commitish": "main","name": "Auto-generated release %s","body": "%s","draft": false,"prerelease": false}' $tag $tag "$notes")
 echo "payload       : $payload"
 
 if [ -z "$token" ]; then
