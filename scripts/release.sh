@@ -11,6 +11,13 @@ tag=$2   # e.g. v0.0.0
 notes=$3 # e.g. "some release notes"
 token=$CHAPUSERS_TOKEN
 
+echo "Create release:"
+echo "Directory     : $dir"
+echo "Tag           : $tag"
+echo "Notes         : $notes"
+payload=$(printf '{"tag_name": "%s","target_commitish": "main","name": "%s","body": "%s","draft": false,"prerelease": false}' $tag $tag "$notes")
+echo "payload       : $payload"
+
 if [ -z "$token" ]; then
     echo "Please define CHAPUSERS_TOKEN environment with proper github access token for CHAPUsers repo"
     exit 1;
@@ -20,7 +27,6 @@ repo="CHAPUsers"
 owner="CHESSComputing"
 
 # see: https://docs.github.com/en/rest/releases/releases?apiVersion=2022-11-28
-payload=$(printf '{"tag_name": "$tag","target_commitish": "main","name": "$tag","body": "$notes","draft": false, "prerelease": false}')
 curl -k -s -L \
   -H "Accept: application/vnd.github+json" \
   -H "Authorization: Bearer $token"\
