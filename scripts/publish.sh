@@ -18,12 +18,15 @@ cd $userDir
 rsync --progress -avuz --numeric-ids --exclude=__pycache__ "$userDir" "$userRepo"
 cd $userRepo
 # git commands, commit only if we have git access
-user=`echo %userDir | awk '{split($1,a,"/"); print a[length(a)]}'`
+user=`echo $userDir | awk '{split($1,a,"/"); print a[length(a)]}'`
 gitAccess=`cat .git/config | grep url | awk '{print $1,$2,$3}' | grep ^url | grep "git@github"`
 echo "Update code for user: $user"
+tstamp=`date -u`
 if [ -n "$gitAccess" ]; then
-    echo "commit to github"
-    git commit -m "CHAPBook publish update for $user" $user
+    echo "commit to github $user"
+    git add $user
+    git commit -m "CHAPBook publish update for $user on $tstamp" $user
+    git push -f
 else
     echo "skip github commit due to lack of protocol permission"
 fi
