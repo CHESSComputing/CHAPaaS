@@ -380,7 +380,7 @@ func ChapProfileHandler(w http.ResponseWriter, r *http.Request) {
 // ChapCommitHandler handles publishing page
 func ChapCommitHandler(w http.ResponseWriter, r *http.Request) {
 	tmpl := makeTmpl("CHAP commit")
-	var userName string
+	var userName, msg string
 	var err error
 	userName, err = getUser(r)
 	if err != nil {
@@ -393,16 +393,21 @@ func ChapCommitHandler(w http.ResponseWriter, r *http.Request) {
 	notebook := filepath.Join(Config.UserDir, userName)
 	log.Printf("shell# %s %s %s %s", cmd, notebook, Config.UserRepo)
 	out, err := exec.Command(cmd, notebook, Config.UserRepo).Output()
-	content := fmt.Sprintf("\n<h2>Commit status:</h2>")
+	content := fmt.Sprintf("\n<b>Commit status:</b>")
 	status := "SUCCESS"
 	if err != nil {
 		tmpl["Error"] = err
 		tmpl["Template"] = "error.tmpl"
 		status = "ERROR"
+		msg = fmt.Sprintf("Fail to commit user codebase to %s, error %v\n<pre>%s</pre>", Config.UserRepo, err, string(out))
+		msg += fmt.Sprintf("\nPlease open ticket at <a href=\"https://github.com/CHESSComputing/CHASaaS/issues\">CHESSComputing/CHASaaS</a> repository")
 	} else {
 		tmpl["Template"] = "success.tmpl"
+		button := fmt.Sprintf("<a href=\"%s/chap/publish\" class=\"button button-small button-round\">Publish</a>", Config.Base)
+		msg = fmt.Sprintf("If you reade you may %s your code", button)
 	}
-	content += fmt.Sprintf("<b>%s</b>\n\n<pre>\n%s\n</pre><br/>\n", status, out)
+	content += fmt.Sprintf("<b>%s</b>\n\n<pre>\n%s\n</pre><br/>\n", status, msg)
+	log.Println(msg)
 	tmpl["Content"] = template.HTML(content)
 	httpResponse(w, r, tmpl)
 }
@@ -424,14 +429,14 @@ func ChapPublishHandler(w http.ResponseWriter, r *http.Request) {
 	releaseNotes := fmt.Sprintf("CHAPBook release %s by %s", userTag, userName)
 	cmd := fmt.Sprintf("%s/publish.sh", Config.ScriptsDir)
 	log.Printf("shell# %s %s %s \"%s\" %s", cmd, Config.UserRepo, userTag, releaseNotes, token)
-	out, err := exec.Command(cmd, Config.UserRepo, userTag, releaseNotes).Output()
-	content := fmt.Sprintf("\n<h2>Publication status:</h2>")
+	out, err := exec.Command(cmd, Config.UserRepo, userTag, releaseNotes, token).Output()
+	content := fmt.Sprintf("\n<b>Publication status:</b>")
 	status := "SUCCESS"
 	if err != nil {
 		tmpl["Error"] = err
 		tmpl["Template"] = "error.tmpl"
-		msg = fmt.Sprintf("ERROR: release %s fail to be publised with error %v\n%v", userTag, err, out)
-		msg += fmt.Sprintf("Please open ticket at <a href=\"https://github.com/CHAPUsers/CHAPBook/issues\">CHAPUsers/CHAPBook</a> repository")
+		msg = fmt.Sprintf("ERROR: release %s fail to be publised with error %v\n<pre>%v</pre>", userTag, err, string(out))
+		msg += fmt.Sprintf("\nPlease open ticket at <a href=\"https://github.com/CHAPUsers/CHAPBook/issues\">CHAPUsers/CHAPBook</a> repository")
 		status = "ERROR"
 	} else {
 		tmpl["Template"] = "success.tmpl"
