@@ -125,3 +125,25 @@ func mdToHTML(fname string) (string, error) {
 	//     return html.EscapeString(string(content)), nil
 	return string(content), nil
 }
+
+// helper function to return CHAPUsers/CHAPBook github token
+func getToken() string {
+	fname := Config.GithubToken
+	file, err := os.Open(fname)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer file.Close()
+	body, err := io.ReadAll(file)
+	if err != nil {
+		log.Println("ERROR: unable to read github token file", fname, err)
+		return ""
+	}
+	return string(body)
+}
+
+// get latest DOI badge
+func getDOI() string {
+	doi := Config.DOI
+	return fmt.Sprintf("<a href=\"https://zenodo.org/badge/latestdoi/%s\"><img src=\"https://zenodo.org/badge/%s.svg\" alt=\"DOI\"></a>", doi, doi)
+}
