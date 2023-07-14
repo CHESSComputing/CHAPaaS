@@ -6,7 +6,7 @@ if [ $# -ne 4 ]; then
     exit 1;
 fi
 
-dir=$1   # e.g /path/CHAPUsers
+dir=$1   # e.g /path/CHAPUsers/CHAPBook
 tag=$2   # e.g. v0.0.0
 notes=$3 # e.g. "some release notes"
 token=$4 # github access token string
@@ -16,29 +16,29 @@ if [ -z "$token" ]; then
     exit 1;
 fi
 
-repo="CHAPUsers"
-owner="CHESSComputing"
-
-
+repo="CHAPBook"
+owner="CHAPUsers"
 echo "Create release:"
 echo "Directory     : $dir"
 echo "Tag           : $tag"
 echo "Notes         : $notes"
-payload=$(printf '{"tag_name": "%s","target_commitish": "main","name": "Auto-generated release %s","body": "%s","draft": false,"prerelease": false}' $tag $tag "$notes")
-echo "payload       : $payload"
 
 # if tag==-1 then we'll grab the last available tag and increment it by 1
 if [ "$tag" == "-1" ]; then
     # capture last available tag
-    lastTag=`curl -ks -H "Authorization: Bearer $CHAPUSERS_TOKEN" https://api.github.com/repos/CHESSComputing/CHAPUsers/releases | grep tag_name | awk '{print $2}' | sort | tail -1 | sed -e "s,\",,g" -e  "s#,##g"`
+    lastTag=`curl -ks -H "Authorization: Bearer $token" https://api.github.com/repos/CHAPUsers/CHAPBook/releases | grep tag_name | awk '{print $2}' | sort | tail -1 | sed -e "s,\",,g" -e  "s#,##g"`
     echo "Last tag      : $lastTag"
-    mainVersion=`echo v0.0.2 | awk '{split($1,a,"."); print a[1]}'`
-    majorNumber=`echo v0.0.2 | awk '{split($1,a,"."); print a[2]}'`
-    minorNumber=`echo v0.0.2 | awk '{split($1,a,"."); print a[3]}'`
+    mainVersion=`echo $lastTag | awk '{split($1,a,"."); print a[1]}'`
+    majorNumber=`echo $lastTag | awk '{split($1,a,"."); print a[2]}'`
+    minorNumber=`echo $lastTag | awk '{split($1,a,"."); print a[3]}'`
     newMinorNumber=$((minorNumber+1))
     tag="${mainVersion}.${majorNumber}.${newMinorNumber}"
-    echo "New tag      : $tag"
+    echo "New tag       : $tag"
+    # change notes as well
+    notes=`echo $notes | sed -e "s,-1,$tag,g"`
 fi
+payload=$(printf '{"tag_name": "%s","target_commitish": "main","name": "%s","body": "%s","draft": false,"prerelease": false}' $tag "$notes" "$notes")
+echo "payload       : $payload"
 
 # see: https://docs.github.com/en/rest/releases/releases?apiVersion=2022-11-28
 
