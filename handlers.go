@@ -392,7 +392,7 @@ func ChapCommitHandler(w http.ResponseWriter, r *http.Request) {
 	cmd := fmt.Sprintf("%s/commit.sh", Config.ScriptsDir)
 	notebook := filepath.Join(Config.UserDir, userName)
 	log.Printf("shell# %s %s %s %s", cmd, notebook, Config.UserRepo)
-	out, err := exec.Command(cmd, notebook, Config.UserRepo).Output()
+	out, err := exec.Command(cmd, notebook, Config.UserRepo).CombinedOutput()
 	content := fmt.Sprintf("\n<b>Commit status:</b>")
 	status := "SUCCESS"
 	if err != nil {
@@ -429,7 +429,7 @@ func ChapPublishHandler(w http.ResponseWriter, r *http.Request) {
 	releaseNotes := fmt.Sprintf("CHAPBook release %s by %s", userTag, userName)
 	cmd := fmt.Sprintf("%s/publish.sh", Config.ScriptsDir)
 	log.Printf("shell# %s %s %s \"%s\" %s", cmd, Config.UserRepo, userTag, releaseNotes, token)
-	out, err := exec.Command(cmd, Config.UserRepo, userTag, releaseNotes, token).Output()
+	out, err := exec.Command(cmd, Config.UserRepo, userTag, releaseNotes, token).CombinedOutput()
 	content := fmt.Sprintf("\n<b>Publication status:</b>")
 	status := "SUCCESS"
 	if err != nil {
