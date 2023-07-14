@@ -393,13 +393,16 @@ func ChapCommitHandler(w http.ResponseWriter, r *http.Request) {
 	notebook := filepath.Join(Config.UserDir, userName)
 	log.Printf("shell# %s %s %s %s", cmd, notebook, Config.UserRepo)
 	out, err := exec.Command(cmd, notebook, Config.UserRepo).Output()
+	content := fmt.Sprintf("\n<h2>Commit status:</h2>")
+	status := "SUCCESS"
 	if err != nil {
 		tmpl["Error"] = err
 		tmpl["Template"] = "error.tmpl"
+		status = "ERROR"
 	} else {
 		tmpl["Template"] = "success.tmpl"
 	}
-	content := fmt.Sprintf("\n<h2>Commit output:</h2>\n<pre>\n%s\n</pre><br/>\n", out)
+	content += fmt.Sprintf("<b>%s</b>\n\n<pre>\n%s\n</pre><br/>\n", status, out)
 	tmpl["Content"] = template.HTML(content)
 	httpResponse(w, r, tmpl)
 }
@@ -422,16 +425,19 @@ func ChapPublishHandler(w http.ResponseWriter, r *http.Request) {
 	cmd := fmt.Sprintf("%s/publish.sh", Config.ScriptsDir)
 	log.Printf("shell# %s %s %s \"%s\" %s", cmd, Config.UserRepo, userTag, releaseNotes, token)
 	out, err := exec.Command(cmd, Config.UserRepo, userTag, releaseNotes).Output()
+	content := fmt.Sprintf("\n<h2>Publication status:</h2>")
+	status := "SUCCESS"
 	if err != nil {
 		tmpl["Error"] = err
 		tmpl["Template"] = "error.tmpl"
 		msg = fmt.Sprintf("ERROR: release %s fail to be publised with error %v\n%v", userTag, err, out)
 		msg += fmt.Sprintf("Please open ticket at <a href=\"https://github.com/CHAPUsers/CHAPBook/issues\">CHAPUsers/CHAPBook</a> repository")
+		status = "ERROR"
 	} else {
 		tmpl["Template"] = "success.tmpl"
 		msg = fmt.Sprintf("release %s sucessfully published, DOI: %s", userTag, getDOI())
 	}
-	content := fmt.Sprintf("\n<h2>Publish output:</h2>\n<pre>\n%s\n</pre><br/>\n", msg)
+	content += fmt.Sprintf("<b>%s</b>\n<pre>\n%s\n</pre><br/>\n", status, msg)
 	log.Println(msg)
 	tmpl["Content"] = template.HTML(content)
 	httpResponse(w, r, tmpl)
