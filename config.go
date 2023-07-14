@@ -57,6 +57,8 @@ type Configuration struct {
 	JupyterHost   string `json:"jupyter_host"`   // jupyter host:port
 	JupyterRoot   string `json:"jupyter_root"`   // jupyter root directory
 	WorkflowsRoot string `json:"workflows_root"` // workflows directory
+	GithubToken   string `json:"github_token"`   // github token to use for publication
+	DOI           string `json:"doi"`            // CHAPUsers/CHAPBook DOI reference
 }
 
 // Credentials returns provider OAuth credential record
