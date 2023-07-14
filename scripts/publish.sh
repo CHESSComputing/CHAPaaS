@@ -1,32 +1,46 @@
 #!/bin/bash
 #
 # check user input
-if [ $# -ne 2 ]; then
-    echo "Not enough arguments, usage: publish.sh <user-dir> <user-repo>"
+if [ $# -ne 3 ]; then
+    echo "Not enough arguments, usage: publish.sh <user-repo> <release-tag> <release-notes>"
     exit 1;
 fi
 
-userDir=$1 # e.g /path/chap/Users/user-name
-userRepo=$2 # e.g /path/CHAPUsers
-echo "Publish:"
-echo "$userDir"
-echo "to github repo:"
-echo "$userRepo"
-cd $userDir
+dir=$1   # e.g /path/CHAPUsers
+tag=$2   # e.g. v0.0.0
+notes=$3 # e.g. "some release notes"
+token=$CHAPUSERS_TOKEN
 
-# rsync commands
-rsync --progress -avuz --numeric-ids --exclude=__pycache__ "$userDir" "$userRepo"
-cd $userRepo
-# git commands, commit only if we have git access
-user=`echo $userDir | awk '{split($1,a,"/"); print a[length(a)]}'`
-gitAccess=`cat .git/config | grep url | awk '{print $1,$2,$3}' | grep ^url | grep "git@github"`
-echo "Update code for user: $user"
-tstamp=`date -u`
-if [ -n "$gitAccess" ]; then
-    echo "commit to github $user"
-    git add $user
-    git commit -m "CHAPBook publish update for $user on $tstamp" $user
-    git push -f
-else
-    echo "skip github commit due to lack of protocol permission"
+echo "Create release:"
+echo "Directory     : $dir"
+echo "Tag           : $tag"
+echo "Notes         : $notes"
+payload=$(printf '{"tag_name": "%s","target_commitish": "main","name": "Auto-generated release %s","body": "%s","draft": false,"prerelease": false}' $tag $tag "$notes")
+echo "payload       : $payload"
+# capture last available tag
+lastTag=`curl -ks -H "Authorization: Bearer $CHAPUSERS_TOKEN" https://api.github.com/repos/CHESSComputing/CHAPUsers/releases | grep tag_name | awk '{print $2}' | sort | tail -1 | sed -e "s,\",,g" -e  "s#,##g"`
+echo "Last tag      : $lastTag"
+mainVersion=`echo v0.0.2 | awk '{split($1,a,"."); print a[1]}'`
+majorNumber=`echo v0.0.2 | awk '{split($1,a,"."); print a[2]}'`
+minorNumber=`echo v0.0.2 | awk '{split($1,a,"."); print a[3]}'`
+newMinorNumber=$((minorNumber+1))
+newTag="${mainVersion}.${majorNumber}.${newMinorNumber}"
+echo "New tag      : $newTag"
+
+if [ -z "$token" ]; then
+    echo "Please define CHAPUSERS_TOKEN environment with proper github access token for CHAPUsers repo"
+    exit 1;
 fi
+
+repo="CHAPUsers"
+owner="CHESSComputing"
+
+# see: https://docs.github.com/en/rest/releases/releases?apiVersion=2022-11-28
+
+# post new release tag
+curl -k -s -L \
+  -H "Accept: application/vnd.github+json" \
+  -H "Authorization: Bearer $token"\
+  -H "X-GitHub-Api-Version: 2022-11-28" \
+  -d "$payload" \
+  https://api.github.com/repos/$owner/$repo/releases

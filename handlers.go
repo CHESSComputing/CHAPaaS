@@ -377,9 +377,36 @@ func ChapProfileHandler(w http.ResponseWriter, r *http.Request) {
 	ChapRunHandler(w, r)
 }
 
+// ChapCommitHandler handles publishing page
+func ChapCommitHandler(w http.ResponseWriter, r *http.Request) {
+	tmpl := makeTmpl("CHAP commit")
+	var userName string
+	var err error
+	userName, err = getUser(r)
+	if err != nil {
+		tmpl["Error"] = err
+		tmpl["HttpCode"] = http.StatusBadRequest
+		httpResponse(w, r, tmpl)
+		return
+	}
+	cmd := fmt.Sprintf("%s/commit.sh", Config.ScriptsDir)
+	notebook := filepath.Join(Config.UserDir, userName)
+	log.Printf("### commit: cmd=%s notebook=%s userDir=%s userRepo=%s", cmd, notebook, Config.UserRepo)
+	out, err := exec.Command(cmd, notebook, Config.UserRepo).Output()
+	if err != nil {
+		tmpl["Error"] = err
+		tmpl["Template"] = "error.tmpl"
+	} else {
+		tmpl["Template"] = "success.tmpl"
+	}
+	content := fmt.Sprintf("\n<h2>Commit output:</h2>\n<pre>\n%s\n</pre><br/>\n", out)
+	tmpl["Content"] = template.HTML(content)
+	httpResponse(w, r, tmpl)
+}
+
 // ChapPublishHandler handles publishing page
 func ChapPublishHandler(w http.ResponseWriter, r *http.Request) {
-	tmpl := makeTmpl("CHAP publishing")
+	tmpl := makeTmpl("CHAP publish")
 	var userName string
 	var err error
 	userName, err = getUser(r)

@@ -60,6 +60,7 @@ func bunRouter() *bunrouter.CompatRouter {
 	// chap routes
 	router.GET(base+"/chap/run", ChapRunHandler)
 	router.GET(base+"/chap/profile", ChapProfileHandler)
+	router.GET(base+"/chap/commit", ChapCommitHandler)
 	router.GET(base+"/chap/publish", ChapPublishHandler)
 
 	// auth end-points
