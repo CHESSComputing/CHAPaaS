@@ -424,7 +424,7 @@ func ChapPublishHandler(w http.ResponseWriter, r *http.Request) {
 		httpResponse(w, r, tmpl)
 		return
 	}
-	userTag := "-1" // force publish.sh script to create new tag
+	userTag := "0" // force publish.sh script to create new tag
 	token := getToken()
 	releaseNotes := fmt.Sprintf("CHAPBook release %s by %s", userTag, userName)
 	cmd := fmt.Sprintf("%s/publish.sh", Config.ScriptsDir)

@@ -23,8 +23,8 @@ echo "Directory     : $dir"
 echo "Tag           : $tag"
 echo "Notes         : $notes"
 
-# if tag==-1 then we'll grab the last available tag and increment it by 1
-if [ "$tag" == "-1" ]; then
+# if tag==0 then we'll grab the last available tag and increment it by 1
+if [ "$tag" == "0" ]; then
     # capture last available tag
     lastTag=`curl -ks -H "Authorization: Bearer $token" https://api.github.com/repos/CHAPUsers/CHAPBook/releases | grep tag_name | awk '{print $2}' | sort | tail -1 | sed -e "s,\",,g" -e  "s#,##g"`
     echo "Last tag      : $lastTag"
@@ -35,7 +35,7 @@ if [ "$tag" == "-1" ]; then
     tag="${mainVersion}.${majorNumber}.${newMinorNumber}"
     echo "New tag       : $tag"
     # change notes as well
-    notes=`echo $notes | sed -e "s,-1,$tag,g"`
+    notes=`echo $notes | sed -e "s,0,$tag,g"`
 fi
 payload=$(printf '{"tag_name": "%s","target_commitish": "main","name": "%s","body": "%s","draft": false,"prerelease": false}' $tag "$notes" "$notes")
 echo "payload       : $payload"
