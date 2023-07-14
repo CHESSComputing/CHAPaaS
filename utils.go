@@ -15,6 +15,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/gomarkdown/markdown"
 	mhtml "github.com/gomarkdown/markdown/html"
@@ -139,7 +140,8 @@ func getToken() string {
 		log.Println("ERROR: unable to read github token file", fname, err)
 		return ""
 	}
-	return string(body)
+	token := string(body)
+	return strings.Replace(token, "\n", "", -1)
 }
 
 // get latest DOI badge
