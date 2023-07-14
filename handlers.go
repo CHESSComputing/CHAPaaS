@@ -391,7 +391,7 @@ func ChapCommitHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	cmd := fmt.Sprintf("%s/commit.sh", Config.ScriptsDir)
 	notebook := filepath.Join(Config.UserDir, userName)
-	log.Printf("### commit: cmd=%s notebook=%s userDir=%s userRepo=%s", cmd, notebook, Config.UserRepo)
+	log.Printf("shell# %s %s %s %s", cmd, notebook, Config.UserRepo)
 	out, err := exec.Command(cmd, notebook, Config.UserRepo).Output()
 	if err != nil {
 		tmpl["Error"] = err
@@ -407,7 +407,7 @@ func ChapCommitHandler(w http.ResponseWriter, r *http.Request) {
 // ChapPublishHandler handles publishing page
 func ChapPublishHandler(w http.ResponseWriter, r *http.Request) {
 	tmpl := makeTmpl("CHAP publish")
-	var userName string
+	var userName, msg string
 	var err error
 	userName, err = getUser(r)
 	if err != nil {
@@ -416,17 +416,23 @@ func ChapPublishHandler(w http.ResponseWriter, r *http.Request) {
 		httpResponse(w, r, tmpl)
 		return
 	}
+	userTag := "-1" // force publish.sh script to create new tag
+	token := getToken()
+	releaseNotes := fmt.Sprintf("CHAPBook release %s by %s", userTag, userName)
 	cmd := fmt.Sprintf("%s/publish.sh", Config.ScriptsDir)
-	notebook := filepath.Join(Config.UserDir, userName)
-	log.Printf("### publish: cmd=%s notebook=%s userDir=%s userRepo=%s", cmd, notebook, Config.UserRepo)
-	out, err := exec.Command(cmd, notebook, Config.UserRepo).Output()
+	log.Printf("shell# %s %s %s \"%s\" %s", cmd, Config.UserRepo, userTag, releaseNotes, token)
+	out, err := exec.Command(cmd, Config.UserRepo, userTag, releaseNotes).Output()
 	if err != nil {
 		tmpl["Error"] = err
 		tmpl["Template"] = "error.tmpl"
+		msg = fmt.Sprintf("ERROR: release %s fail to be publised with error %v\n%v", userTag, err, out)
+		msg += fmt.Sprintf("Please open ticket at <a href=\"https://github.com/CHAPUsers/CHAPBook/issues\">CHAPUsers/CHAPBook</a> repository")
 	} else {
 		tmpl["Template"] = "success.tmpl"
+		msg = fmt.Sprintf("release %s sucessfully published, DOI: %s", userTag, getDOI())
 	}
-	content := fmt.Sprintf("\n<h2>Publish output:</h2>\n<pre>\n%s\n</pre><br/>\n", out)
+	content := fmt.Sprintf("\n<h2>Publish output:</h2>\n<pre>\n%s\n</pre><br/>\n", msg)
+	log.Println(msg)
 	tmpl["Content"] = template.HTML(content)
 	httpResponse(w, r, tmpl)
 }
