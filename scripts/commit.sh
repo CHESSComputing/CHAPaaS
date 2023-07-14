@@ -24,6 +24,7 @@ echo "Update code for user: $user"
 tstamp=`date -u`
 if [ -n "$gitAccess" ]; then
     echo "commit to github $user"
+    git pull
     git add $user
     git commit -m "CHAPBook commit update for $user on $tstamp" $user
     git push -f
