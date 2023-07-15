@@ -86,3 +86,7 @@ Here we used the following:
 ```
 ./chapaas -config config-http.json
 ```
+- on CHESS node you can start it as following:
+```
+./scripts/run.sh
+```
