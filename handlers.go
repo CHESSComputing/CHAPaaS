@@ -391,8 +391,9 @@ func ChapCommitHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	cmd := fmt.Sprintf("%s/commit.sh", Config.ScriptsDir)
 	notebook := filepath.Join(Config.UserDir, userName)
-	log.Printf("shell# %s %s %s %s", cmd, notebook, Config.UserRepo)
+	log.Printf("shell # %s %s %s", cmd, notebook, Config.UserRepo)
 	out, err := exec.Command(cmd, notebook, Config.UserRepo).CombinedOutput()
+	log.Println("shell output # ", string(out), err)
 	content := fmt.Sprintf("\n<b>Commit status: </b>")
 	status := "SUCCESS"
 	if err != nil {
@@ -407,7 +408,6 @@ func ChapCommitHandler(w http.ResponseWriter, r *http.Request) {
 		msg = fmt.Sprintf("If you reade you may %s your code", button)
 	}
 	content += fmt.Sprintf("<b>%s</b>\n\n<pre>\n%s\n</pre><br/>\n", status, msg)
-	log.Println(msg)
 	tmpl["Content"] = template.HTML(content)
 	httpResponse(w, r, tmpl)
 }
@@ -430,6 +430,7 @@ func ChapPublishHandler(w http.ResponseWriter, r *http.Request) {
 	cmd := fmt.Sprintf("%s/publish.sh", Config.ScriptsDir)
 	log.Printf("shell# %s %s %s %s \"%s\"", cmd, Config.UserRepo, token, userTag, releaseNotes)
 	out, err := exec.Command(cmd, Config.UserRepo, token, userTag, releaseNotes).CombinedOutput()
+	log.Println("shell output # ", string(out), err)
 	content := fmt.Sprintf("\n<b>Publication status: </b>")
 	status := "SUCCESS"
 	if err != nil {
@@ -441,10 +442,8 @@ func ChapPublishHandler(w http.ResponseWriter, r *http.Request) {
 	} else {
 		tmpl["Template"] = "success.tmpl"
 		msg = fmt.Sprintf("release sucessfully published, DOI: %s", getDOI())
-		log.Println(string(out))
 	}
 	content += fmt.Sprintf("<b>%s</b>\n<pre>\n%s\n</pre><br/>\n", status, msg)
-	log.Println(msg)
 	tmpl["Content"] = template.HTML(content)
 	httpResponse(w, r, tmpl)
 }
