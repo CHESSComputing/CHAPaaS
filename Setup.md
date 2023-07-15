@@ -44,7 +44,7 @@ The token ID should be put into CHAPaaS config too.
 jupyter notebook --config /path/jupyter_config.py
 ```
 
-- create configuration file for CHAPaaS
+- create configuration file for CHAPaaS (name it as `config-http.json`):
 ```
 {
     "base": "",
@@ -82,3 +82,7 @@ Here we used the following:
     application page
   - go to developer settings, choose OAuth apps and setup your
   new OAuth app and obtain your `client_id` and `client_secret`
+- finally, you may start CHAPaaS service as following:
+```
+./chapaas -config config-http.json
+```
