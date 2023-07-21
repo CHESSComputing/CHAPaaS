@@ -181,17 +181,17 @@ func genChapConfig(user, module, reader, writer string) string {
 	reader = strings.ToLower(reader)
 	writer = strings.ToLower(writer)
 	if reader == "yaml" {
-		config += "  - common.YAMLReader: {}"
+		config += "  - common.YAMLReader: {}\n"
 	} else if reader == "nexus" {
-		config += "  - common.NexuReader: {}"
+		config += "  - common.NexuReader: {}\n"
 	}
 	//config += "  - UserProcessor: {}\n  - common.PrintProcessor: {}"
 	config += fmt.Sprintf("  - users.%s.%s.UserProcessor: {}\n", user, module)
 	config += "  - common.PrintProcessor: {}\n"
 	if writer == "yaml" {
-		config += "  - common.YAMLWriter: {}"
+		config += "  - common.YAMLWriter: {}\n"
 	} else if writer == "nexus" {
-		config += "  - common.NexuWriter: {}"
+		config += "  - common.NexuWriter: {}\n"
 	}
 	/*
 	   	config := `
