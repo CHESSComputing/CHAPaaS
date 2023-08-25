@@ -24,12 +24,13 @@ type OAuthRecord struct {
 // Configuration stores server configuration parameters
 type Configuration struct {
 	// web server parts
-	Base        string `json:"base"`         // base URL
-	LogFile     string `json:"log_file"`     // server log file
-	Port        int    `json:"port"`         // server port number
-	Verbose     int    `json:"verbose"`      // verbose output
-	StaticDir   string `json:"static_dir"`   // speficy static dir location
-	RedirectURL string `json:"redirect_url"` // redirect URL for OAuth provider
+	Base        string `json:"base"`             // base URL
+	LogFile     string `json:"log_file"`         // server log file
+	Port        int    `json:"port"`             // server port number
+	Verbose     int    `json:"verbose"`          // verbose output
+	StaticDir   string `json:"static_dir"`       // speficy static dir location
+	RedirectURL string `json:"redirect_url"`     // redirect URL for OAuth provider
+	DevMode     bool   `json:"development_mode"` // turn off authz in development mode
 
 	// OAuth parts
 	OAuth []OAuthRecord `json:"oauth"` // oauth configurations
