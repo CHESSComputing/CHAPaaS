@@ -19,6 +19,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/uptrace/bunrouter"
 	"golang.org/x/oauth2"
 )
 
@@ -263,6 +264,42 @@ func NotebookHandler(w http.ResponseWriter, r *http.Request) {
 	tmpl["Workflows"] = chapWorkflows.getWorkflows()
 	tmpl["Template"] = "notebook.tmpl"
 	httpResponse(w, r, tmpl)
+}
+
+// ChapWorkflowHandler handles individual workflow page/API
+func ChapWorkflowHandler(w http.ResponseWriter, r *http.Request) {
+	tmpl := makeTmpl("CHAP workflow")
+	// get user name from web session
+	user, err := getUser(r)
+	if err != nil {
+		tmpl["Error"] = err
+		tmpl["HttpCode"] = http.StatusBadRequest
+		httpResponse(w, r, tmpl)
+		return
+	}
+	params := bunrouter.ParamsFromContext(r.Context())
+	workflow := params.ByName("workflow")
+	module := "userprocessor" // it is irrelevant in this case
+	config := genWorkflowConfig(user, module, workflow)
+	tmpl["Config"] = config
+	tmpl["Workflow"] = workflow
+	tmpl["Template"] = "workflow_config.tmpl"
+	httpResponse(w, r, tmpl)
+}
+
+// ChapConfigHandler handles individual workflow configuration
+func ChapConfigHandler(w http.ResponseWriter, r *http.Request) {
+	// get user name from web session
+	user, err := getUser(r)
+	if err != nil {
+		w.Write([]byte(err.Error()))
+		return
+	}
+	params := bunrouter.ParamsFromContext(r.Context())
+	workflow := params.ByName("workflow")
+	module := "userprocessor" // it is irrelevant in this case
+	config := genWorkflowConfig(user, module, workflow)
+	w.Write([]byte(config))
 }
 
 // ChapRunHandler handles CHAP run page
