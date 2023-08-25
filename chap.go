@@ -141,7 +141,7 @@ func genUserCode(user, module, processor string, lines []string) {
 func genWorkflowConfig(user, module, workflow string) string {
 	var config string
 	for _, w := range chapWorkflows.getWorkflows() {
-		if w.Name == workflow {
+		if strings.ToUpper(w.Name) == strings.ToUpper(workflow) {
 			fname := filepath.Join(w.Directory, w.Config)
 			file, err := os.Open(fname)
 			if err != nil {
