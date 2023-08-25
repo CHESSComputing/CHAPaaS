@@ -141,6 +141,16 @@ func FaviconHandler(w http.ResponseWriter, r *http.Request) {
 
 // helper function to check user's authorization
 func checkAuthz(tmpl TmplRecord, w http.ResponseWriter, r *http.Request) error {
+
+	// check if we use dev mode and then do not check for user session
+	if Config.DevMode {
+		log.Println("WARNING: server use development mode, the checkAuthz is off")
+		tmpl["User"] = "dev-user"
+		tmpl["Token"] = "dev-token"
+		tmpl["Provider"] = "dev-provider"
+		return nil
+	}
+
 	// get our session cookies
 	session, err := sessionStore.Get(r, sessionName)
 	if err != nil {
@@ -168,6 +178,13 @@ func checkAuthz(tmpl TmplRecord, w http.ResponseWriter, r *http.Request) error {
 
 // helper function to get user name from web session
 func getUser(r *http.Request) (string, error) {
+	// check if we use dev mode and then do not check for user session
+	if Config.DevMode {
+		log.Println("WARNING: server use development mode, the checkAuthz is off")
+		user := "dev-user"
+		return user, nil
+	}
+
 	// get our session cookies
 	session, err := sessionStore.Get(r, sessionName)
 	if err != nil {
