@@ -20,15 +20,17 @@ function FlipTag(tag) {
         }
     }
 }
-function AddWorkflow(tag) {
+function AddWorkflow(wflow) {
     var id=document.getElementById("workflow");
     if (id) {
         id.className="show";
     }
-    id.innerHTML += tag;
+    id.innerHTML += wflow;
     id.innerHTML += "&nbsp; workflow";
+    href = "\"javascript:ajaxWorkflowConfig('" + wflow + "')\"";
+    id.innerHTML += "&nbsp; <a href=" + href + "id=\"getconfig\">config</a>"
     // update hidden chap input
-    document.getElementById("chapworkflow").value = tag;
+    document.getElementById("chapworkflow").value = wflow;
 }
 function AddReader(tag) {
     var id=document.getElementById("workflow");
