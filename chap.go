@@ -61,10 +61,10 @@ func addUserProcessor(user, module, processor string) {
 */
 
 // helper function to run CHAP pipeline
-func runCHAP(user, config, profile string) ([]byte, error) {
+func runCHAP(user, config, workflow string) ([]byte, error) {
 	var out []byte
 	var err error
-	fname := fmt.Sprintf("%s/%s/chap.yaml", Config.UserDir, user)
+	fname := fmt.Sprintf("%s/%s/run-chap.yaml", Config.UserDir, user)
 	if Config.Verbose > 0 {
 		log.Println("writing config file", fname)
 	}
@@ -78,16 +78,20 @@ func runCHAP(user, config, profile string) ([]byte, error) {
 	file, err := os.Create(fname)
 	if err != nil {
 		log.Println("runCHAP os.create", err)
+		return out, err
 	}
 	defer file.Close()
 	file.Write([]byte(config))
+
 	// run CHAP pipeline
 	cmd := fmt.Sprintf("%s/chap.sh", Config.ScriptsDir)
 	// user dir in configuration contains /users suffix
 	// but for running chap.sh script we should strip it off
-	userDir := strings.Replace(Config.UserDir, "/users", "", -1)
-	log.Printf("### runCHAP: cmd=%s file=%s chapDir=%s userDir=%s profile=%s", cmd, fname, Config.ChapDir, userDir, profile)
-	out, err = exec.Command(cmd, fname, Config.ChapDir, userDir, profile).Output()
+	//     userDir := strings.Replace(Config.UserDir, "/users", "", -1)
+	userDir := fmt.Sprintf("%s/%s", Config.UserDir, user)
+	wflowDir := fmt.Sprintf("%s/%s", Config.WorkflowsRoot, workflow)
+	log.Printf("### runCHAP: %s %s %s %s", cmd, fname, wflowDir, userDir)
+	out, err = exec.Command(cmd, fname, wflowDir, userDir).Output()
 	return out, err
 }
 

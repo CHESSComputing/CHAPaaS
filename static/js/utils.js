@@ -74,6 +74,18 @@ function RunCHAP(profile) {
         workflow = "&chapworkflow="+id.value;
         rurl += workflow;
     }
+    // replace notebook and buttons with run CHAP message
+    var did=document.getElementById("chap-notebook")
+    if (did) {
+        did.innerHTML = "<div class=\"img-center\">";
+        did.innerHTML += "<img src=\"/images/wait.gif\" alt=\"please wait for its completion\" width=\"48\">";
+        did.innerHTML += "Your new CHAP workflow is scheduled and run right now";
+        did.innerHTML += "</div>";
+    }
+    var xid=document.getElementById("chap-buttons")
+    if (xid) {
+        xid.innerHTML = ""
+    }
     console.log("will call "+rurl);
     // execute rurl call to our server
     window.onbeforeunload = null;

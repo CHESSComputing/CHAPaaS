@@ -57,6 +57,14 @@ section:after {
   min-height: 600px;
 }
 
+.img-center {
+  padding-top: 10px;
+  padding-left: 10px;
+  text-align: center;
+  background-color: #f1f1f1;
+  width:50%;
+}
+
 /* Style the footer */
 footer {
   background-color: gray;

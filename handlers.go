@@ -379,11 +379,8 @@ func ChapRunHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	content += fmt.Sprintf("\n<pre>\n%s\n</pre><br/>\n", config)
 
-	// read profile flag from the HTTP header
-	profile := r.Header.Get("profile")
-
 	// run CHAP pipeline
-	out, err := runCHAP(user, config, profile)
+	out, err := runCHAP(user, config, workflow)
 	if err != nil {
 		tmpl["Error"] = err
 		tmpl["Template"] = "error.tmpl"
