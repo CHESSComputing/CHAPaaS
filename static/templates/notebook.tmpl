@@ -86,6 +86,10 @@
             <div id="please-wait" name="please-wait" class="hide">
                 <img src="{{.Base}}/images/wait.gif" alt="please wait for its completion" width="48">
                 Your new CHAP workflow is scheduled and run right now
+                <div id="wait-output">
+                    Workflow output will appear in your
+                    <a href="{{.Base}}/users/{{.User}}">user area</a>
+                </div>
             </div>
 
             <iframe id="notebook" name="notebook" src="{{.JupyterHost}}/notebooks{{.Notebook}}?kernel_name=python3&token={{.JupyterToken}}"

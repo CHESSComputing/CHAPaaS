@@ -29,4 +29,5 @@ conda activate $cenv
 mkdir -p $udir/$workflow
 cd $udir/$workflow
 cp -f -r $wdir/* .
-CHAP $config 2>&1
+CHAP $config 2>&1 1>& chap.log
+cat chap.log

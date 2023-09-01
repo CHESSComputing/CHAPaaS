@@ -277,7 +277,6 @@ func NotebookHandler(w http.ResponseWriter, r *http.Request) {
 		"XarrayToNumpyProcessor",
 	}
 	tmpl["Template"] = "notebook.tmpl"
-	log.Println("###", tmpl)
 	httpResponse(w, r, tmpl)
 }
 
@@ -386,7 +385,8 @@ func ChapRunHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	content := fmt.Sprintf("\n<h1>Workflow: %s</h1><br/>\n", workflow)
-	content += fmt.Sprintf("\n<b>Output: &nbsp;&rArr;&nbsp; <span class=\"blue\"><a href=\"%s/users/%s/%s\">workflow files</a></span></b>", Config.Base, user, workflow)
+	content += fmt.Sprintf("\n<b>Output area: &nbsp;&rArr;&nbsp; <span class=\"blue\"><a href=\"%s/users/%s/%s\">workflow files</a></span></b>", Config.Base, user, workflow)
+	content += fmt.Sprintf("\n<b> <span class=\"blue\"><a href=\"%s/users/%s/%s/chap.log\">chap.log</a></span></b>", Config.Base, user, workflow)
 	content += "\n<h2>Config:</h2><br/>\n"
 
 	// TODO: think about how dynamically pass module and processor
