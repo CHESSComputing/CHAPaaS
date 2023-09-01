@@ -101,6 +101,12 @@ func bunRouter() *bunrouter.CompatRouter {
 		router.Router.GET(m+"/*path", bunrouter.HTTPHandler(hdlr))
 	}
 
+	// file handler for users area
+	fileServer := http.FileServer(http.Dir(Config.UserDir))
+	udir := fmt.Sprintf("%s/users", Config.Base)
+	hdlr := http.StripPrefix(udir, fileServer)
+	router.Router.GET(udir+"/*path", bunrouter.HTTPHandler(hdlr))
+
 	return router
 }
 
