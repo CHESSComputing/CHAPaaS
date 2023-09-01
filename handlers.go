@@ -314,6 +314,7 @@ func ChapRunHandler(w http.ResponseWriter, r *http.Request) {
 		httpResponse(w, r, tmpl)
 		return
 	}
+	tmpl["User"] = user
 	tmpl["Title"] = fmt.Sprintf("CHAP pipeline (%s)", user)
 
 	// prepare notebook
@@ -339,7 +340,6 @@ func ChapRunHandler(w http.ResponseWriter, r *http.Request) {
 	if Config.Verbose > 0 {
 		log.Printf("### CHAP %+v, error %v", rec, err)
 	}
-	content := "\n<h1>CHAP pipeline</h1><br/>\n"
 
 	// get reader, writer parameters
 	params, err := url.ParseQuery(r.URL.RawQuery)
@@ -359,6 +359,10 @@ func ChapRunHandler(w http.ResponseWriter, r *http.Request) {
 	if values, ok := params["chapworkflow"]; ok {
 		workflow = values[0]
 	}
+
+	content := fmt.Sprintf("\n<h1>Workflow: %s</h1><br/>\n", workflow)
+	content += fmt.Sprintf("\n<b>Output: &nbsp;&rArr;&nbsp; <span class=\"blue\"><a href=\"%s/users/%s/%s\">workflow files</a></span></b>", Config.Base, user, workflow)
+	content += "\n<h2>Config:</h2><br/>\n"
 
 	// TODO: think about how dynamically pass module and processor
 	// possibly via params to avoid hardcoding
@@ -391,7 +395,7 @@ func ChapRunHandler(w http.ResponseWriter, r *http.Request) {
 	// prepare web response
 	userInput := strings.Trim(strings.Join(lines, "\n"), " ")
 	content += fmt.Sprintf("\n<h2>Input:</h2>\n<pre>\n%s\n</pre><br/>\n", userInput)
-	content += fmt.Sprintf("\n<h2>Output:</h2>\n<pre>\n%s\n</pre><br/>\n", out)
+	content += fmt.Sprintf("\n<h2>Log:</h2>\n<pre>\n%s\n</pre><br/>\n", out)
 	if err != nil {
 		content += fmt.Sprintf("\n<h2>Error:</h2>\n<pre>\n%v\n</pre><br/>\n", err)
 	}

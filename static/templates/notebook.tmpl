@@ -110,8 +110,12 @@
         </div>
         <div id="chap-notebook" name="chap-notebook" class="column column-9">
             <div id="workflowconfig" name="workflowconfig"></div>
+            <div id="please-wait" name="please-wait" class="img-center hide">
+                <img src="{{.Base}}/images/wait.gif" alt="please wait for its completion" width="48">
+                Your new CHAP workflow is scheduled and run right now
+            </div>
 
-            <iframe src="{{.JupyterHost}}/notebooks{{.Notebook}}?kernel_name=python3&token={{.JupyterToken}}"
+            <iframe id="notebook" name="notebook" src="{{.JupyterHost}}/notebooks{{.Notebook}}?kernel_name=python3&token={{.JupyterToken}}"
                     width="100%"
                     height="450"
                     style="border:1px solid black;"

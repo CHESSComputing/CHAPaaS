@@ -90,8 +90,8 @@ func runCHAP(user, config, workflow string) ([]byte, error) {
 	//     userDir := strings.Replace(Config.UserDir, "/users", "", -1)
 	userDir := fmt.Sprintf("%s/%s", Config.UserDir, user)
 	wflowDir := fmt.Sprintf("%s/%s", Config.WorkflowsRoot, workflow)
-	log.Printf("### runCHAP: %s %s %s %s", cmd, fname, wflowDir, userDir)
-	out, err = exec.Command(cmd, fname, wflowDir, userDir).Output()
+	log.Printf("### runCHAP: %s %s %s %s %s", cmd, workflow, fname, wflowDir, userDir)
+	out, err = exec.Command(cmd, workflow, fname, wflowDir, userDir).Output()
 	return out, err
 }
 
