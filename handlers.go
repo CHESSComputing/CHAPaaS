@@ -262,8 +262,39 @@ func NotebookHandler(w http.ResponseWriter, r *http.Request) {
 	tmpl["JupyterHost"] = Config.JupyterHost
 	tmpl["Notebook"] = fmt.Sprintf("/users/%s/%s", userName, notebook.FileName)
 	tmpl["Workflows"] = chapWorkflows.getWorkflows()
+	tmpl["Readers"] = []string{"YamlReader", "NexusReader", "CSVReader"}
+	tmpl["Writers"] = []string{"YamlWriter", "NexusWriter", "CSVWriter"}
+	tmpl["Processors"] = []string{
+		"AsyncProcessor",
+		"IntegrationProcessor",
+		"IntegrateMapProcessor",
+		"MapProcessor",
+		"NexusToNumpyProcessor",
+		"NexusToXarrayProcessor",
+		"PrintProcessor",
+		"StrainAnalysisProcessor",
+		"XarrayToNexusProcessor",
+		"XarrayToNumpyProcessor",
+	}
 	tmpl["Template"] = "notebook.tmpl"
+	log.Println("###", tmpl)
 	httpResponse(w, r, tmpl)
+}
+
+// ChapDocHandler handles individual workflow page/API
+func ChapDocHandler(w http.ResponseWriter, r *http.Request) {
+	tmpl := makeTmpl("CHAP documentation")
+	params := bunrouter.ParamsFromContext(r.Context())
+	topic := params.ByName("topic")
+	fname := fmt.Sprintf("%s/%s.md", Config.DocDir, topic)
+	content, err := mdToHTML(fname)
+	if err != nil {
+		tmpl["Error"] = err
+		tmpl["HttpCode"] = http.StatusBadRequest
+		httpResponse(w, r, tmpl)
+		return
+	}
+	w.Write([]byte(content))
 }
 
 // ChapWorkflowHandler handles individual workflow page/API
@@ -349,13 +380,7 @@ func ChapRunHandler(w http.ResponseWriter, r *http.Request) {
 		httpResponse(w, r, tmpl)
 		return
 	}
-	var reader, writer, workflow string
-	if values, ok := params["reader"]; ok {
-		reader = values[0]
-	}
-	if values, ok := params["writer"]; ok {
-		writer = values[0]
-	}
+	var workflow string
 	if values, ok := params["chapworkflow"]; ok {
 		workflow = values[0]
 	}
@@ -374,12 +399,12 @@ func ChapRunHandler(w http.ResponseWriter, r *http.Request) {
 	// generate user config
 	var config string
 	if Config.Verbose > 0 {
-		log.Printf("### GENERATE NOTEBOOK workflow, workflow=%s reader=%s writer=%s", workflow, reader, writer)
+		log.Printf("### GENERATE NOTEBOOK workflow=%s", workflow)
 	}
 	if workflow != "" {
 		config = genWorkflowConfig(user, module, workflow)
 	} else {
-		config = genChapConfig(user, module, reader, writer)
+		config = genChapConfig(user, module, "yaml", "yaml")
 	}
 	content += fmt.Sprintf("\n<pre>\n%s\n</pre><br/>\n", config)
 

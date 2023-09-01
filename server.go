@@ -64,6 +64,7 @@ func bunRouter() *bunrouter.CompatRouter {
 	router.GET(base+"/chap/publish", ChapPublishHandler)
 	router.GET(base+"/chap/config/:workflow", ChapConfigHandler)
 	router.GET(base+"/chap/workflow/:workflow", ChapWorkflowHandler)
+	router.GET(base+"/chap/doc/:topic", ChapDocHandler)
 
 	// auth end-points
 	// github OAuth routes

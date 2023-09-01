@@ -52,6 +52,7 @@ type Configuration struct {
 	// CHAP parts
 	ChapDir       string `json:"chap_dir"`       // CHAP install area
 	UserDir       string `json:"user_dir"`       // user directory
+	DocDir        string `json:"doc_dir"`        // CHAP doc directory
 	UserRepo      string `json:"user_repo"`      // user repo to use, e.g. CHAPUsers
 	ScriptsDir    string `json:"scripts_dir"`    // scripts dir area
 	JupyterToken  string `json:"jupyter_token"`  // jupyter token
@@ -112,6 +113,9 @@ func parseConfig(configFile string) error {
 	}
 	if Config.UserDir == "" {
 		log.Fatal("Empty UserDir, please adjust your configuration")
+	}
+	if Config.DocDir == "" {
+		log.Fatal("Empty DocDir, please adjust your configuration")
 	}
 	if Config.UserRepo == "" {
 		log.Fatal("Empty UserRepo, please adjust your configuration")

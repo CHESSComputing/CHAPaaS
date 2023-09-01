@@ -14,3 +14,17 @@ function ajaxWorkflowConfig(wflow) {
 //      });
     });
 }
+// helper function to get doc response
+function ajaxDocResponse(doc) {
+    $(document).ready(function(){
+        rurl = "/chap/doc/"+doc;
+        $.get(rurl, function(data, status){
+            var id=document.getElementById("doc-response");
+            if (id) {
+                id.className="show";
+            }
+            id.innerHTML = data;
+        });
+//      });
+    });
+}

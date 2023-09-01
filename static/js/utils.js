@@ -25,32 +25,15 @@ function AddWorkflow(wflow) {
     if (id) {
         id.className="show";
     }
-    id.innerHTML += wflow;
+    id.innerHTML = wflow;
     id.innerHTML += "&nbsp; workflow";
     href = "\"javascript:ajaxWorkflowConfig('" + wflow + "')\"";
-    id.innerHTML += "&nbsp; <a href=" + href + "id=\"getconfig\">config</a>"
+    id.innerHTML += "<br/>show <a href=" + href + "id=\"getconfig\">config</a>"
     // update hidden chap input
-    document.getElementById("chapworkflow").value = wflow;
-}
-function AddReader(tag) {
-    var id=document.getElementById("workflow");
-    if (id) {
-        id.className="show";
+    var cid=document.getElementById("chapworkflow");
+    if (cid) {
+        cid.value = wflow;
     }
-    id.innerHTML += tag;
-    id.innerHTML += "&nbsp; reader &nbsp; &rarr; &nbsp; Processor &nbsp; &rarr; &nbsp;";
-    // update hidden chap input
-    document.getElementById("reader").value = tag;
-}
-function AddWriter(tag) {
-    var id=document.getElementById("workflow");
-    if (id) {
-        id.className="show";
-    }
-    id.innerHTML += tag;
-    id.innerHTML += "&nbsp; writer";
-    // update hidden chap input
-    document.getElementById("writer").value += tag;
 }
 function RunCHAP(profile) {
     var bid=document.getElementById("base");
@@ -58,16 +41,6 @@ function RunCHAP(profile) {
     rurl = bid.value+"/chap/run?token="+tid.value;
     if (profile == "profile") {
         rurl = bid.value+"/chap/profile?token="+tid.value;
-    }
-    var id=document.getElementById("reader");
-    if (id) {
-        reader = "&reader="+id.value;
-        rurl += reader;
-    }
-    var id=document.getElementById("writer");
-    if (id) {
-        writer = "&writer="+id.value;
-        rurl += writer;
     }
     var id=document.getElementById("chapworkflow");
     if (id) {
@@ -82,4 +55,31 @@ function RunCHAP(profile) {
     // execute rurl call to our server
     window.onbeforeunload = null;
     window.location.href = rurl;
+}
+function DocResponse(doc) {
+    // replace notebook and buttons with run please wait message
+    HideTag("notebook");
+    HideTag("chap-buttons");
+    HideTag("please-wait");
+    var arr = ["doc-response", "workflowconfig", "workflow"];
+    for (var i = 0; i < arr.length; i++) {
+        var id=document.getElementById(arr[i]);
+        if (id) {
+            id.innerHTML = "";
+        }
+    }
+    ShowTag("doc-response");
+    ajaxDocResponse(doc)
+}
+function ShowNotebook() {
+    HideTag("please-wait");
+    var arr = ["doc-response", "workflowconfig"];
+    for (var i = 0; i < arr.length; i++) {
+        var id=document.getElementById(arr[i]);
+        if (id) {
+            id.innerHTML = "";
+        }
+    }
+    ShowTag("notebook");
+    ShowTag("chap-buttons");
 }
