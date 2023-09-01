@@ -327,6 +327,16 @@ func ChapConfigHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	params := bunrouter.ParamsFromContext(r.Context())
 	workflow := params.ByName("workflow")
+	if r.Method == "POST" {
+		defer r.Body.Close()
+		data, err := io.ReadAll(r.Body)
+		if err != nil {
+			w.Write([]byte(err.Error()))
+			return
+		}
+		log.Printf("### POST record=%+v error=%v", string(data), err)
+		w.Write(data)
+	}
 	module := "userprocessor" // it is irrelevant in this case
 	config := genWorkflowConfig(user, module, workflow)
 	w.Write([]byte(config))
