@@ -334,8 +334,18 @@ func ChapConfigHandler(w http.ResponseWriter, r *http.Request) {
 			w.Write([]byte(err.Error()))
 			return
 		}
-		log.Printf("### POST record=%+v error=%v", string(data), err)
-		w.Write(data)
+		if Config.Verbose > 0 {
+			log.Printf("### POST record=%+v error=%v", string(data), err)
+		}
+		// write provided config content back to user's area into chap.yaml file
+		fname := fmt.Sprintf("%s/users/%s/%s/chap.yaml", Config.UserDir, user, workflow)
+		file, err := os.Open(fname)
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer file.Close()
+		file.Write(data)
+		w.Write([]byte("success"))
 	}
 	module := "userprocessor" // it is irrelevant in this case
 	config := genWorkflowConfig(user, module, workflow)
