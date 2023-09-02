@@ -10,12 +10,14 @@ import (
 	"fmt"
 	"html/template"
 	"io"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"sort"
 	"strings"
 	"time"
 
@@ -262,20 +264,26 @@ func NotebookHandler(w http.ResponseWriter, r *http.Request) {
 	tmpl["JupyterHost"] = Config.JupyterHost
 	tmpl["Notebook"] = fmt.Sprintf("/users/%s/%s", userName, notebook.FileName)
 	tmpl["Workflows"] = chapWorkflows.getWorkflows()
-	tmpl["Readers"] = []string{"YamlReader", "NexusReader", "CSVReader"}
-	tmpl["Writers"] = []string{"YamlWriter", "NexusWriter", "CSVWriter"}
-	tmpl["Processors"] = []string{
-		"AsyncProcessor",
-		"IntegrationProcessor",
-		"IntegrateMapProcessor",
-		"MapProcessor",
-		"NexusToNumpyProcessor",
-		"NexusToXarrayProcessor",
-		"PrintProcessor",
-		"StrainAnalysisProcessor",
-		"XarrayToNexusProcessor",
-		"XarrayToNumpyProcessor",
+	var readers, writers, processors []string
+	files, err := ioutil.ReadDir(Config.DocDir)
+	if err == nil {
+		for _, f := range files {
+			fname := strings.Replace(f.Name(), ".md", "", -1)
+			if strings.Contains(fname, "Reader") {
+				readers = append(readers, fname)
+			} else if strings.Contains(fname, "Writer") {
+				writers = append(writers, fname)
+			} else if strings.Contains(fname, "Processor") {
+				processors = append(processors, fname)
+			}
+		}
 	}
+	sort.Strings(readers)
+	sort.Strings(writers)
+	sort.Strings(processors)
+	tmpl["Readers"] = readers
+	tmpl["Writers"] = writers
+	tmpl["Processors"] = processors
 	tmpl["Template"] = "notebook.tmpl"
 	httpResponse(w, r, tmpl)
 }
