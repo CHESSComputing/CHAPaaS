@@ -59,12 +59,14 @@ func bunRouter() *bunrouter.CompatRouter {
 
 	// chap routes
 	router.GET(base+"/chap/run", ChapRunHandler)
+	router.GET(base+"/chap/batch", ChapBatchHandler)
 	router.GET(base+"/chap/profile", ChapProfileHandler)
 	router.GET(base+"/chap/commit", ChapCommitHandler)
 	router.GET(base+"/chap/publish", ChapPublishHandler)
 	router.GET(base+"/chap/config/:workflow", ChapConfigHandler)
 	router.GET(base+"/chap/workflow/:workflow", ChapWorkflowHandler)
 	router.GET(base+"/chap/doc/:topic", ChapDocHandler)
+	router.GET(base+"/chap/tar/:workflow", ChapTarHandler)
 
 	// POST routes
 	router.POST(base+"/chap/config/:workflow", ChapConfigHandler)
