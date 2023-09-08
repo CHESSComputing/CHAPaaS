@@ -80,11 +80,20 @@ func httpResponse(w http.ResponseWriter, r *http.Request, tmpl TmplRecord) {
 	top := tmpl.GetString("Top")
 	bottom := tmpl.GetString("Bottom")
 	tfile := tmpl.GetString("Template")
+	content := tmpl.GetString("Content")
 	if tfile == "" {
-		if httpCode == 0 || httpCode == http.StatusOK {
+		if _, ok := tmpl["Error"]; ok {
+			tfile = "error.tmpl"
+			if content == "" {
+				tmpl["Content"] = tmpl["Error"]
+			}
+		} else if httpCode == 0 || httpCode == http.StatusOK {
 			tfile = "success.tmpl"
 		} else {
 			tfile = "error.tmpl"
+			if content == "" {
+				tmpl["Content"] = tmpl["Error"]
+			}
 		}
 	}
 	page := tmplPage(tfile, tmpl)
@@ -288,6 +297,32 @@ func NotebookHandler(w http.ResponseWriter, r *http.Request) {
 	httpResponse(w, r, tmpl)
 }
 
+// ChapTarHandler handles create of tar ball for user areas
+func ChapTarHandler(w http.ResponseWriter, r *http.Request) {
+	tmpl := makeTmpl("CHAP tar-ball")
+	user, err := getUser(r)
+	if err != nil {
+		tmpl["Error"] = err
+		tmpl["HttpCode"] = http.StatusBadRequest
+		httpResponse(w, r, tmpl)
+		return
+	}
+	params := bunrouter.ParamsFromContext(r.Context())
+	workflow := params.ByName("workflow")
+	src := fmt.Sprintf("%s/%s/%s", Config.UserDir, user, workflow)
+	cwd, _ := os.Getwd()
+	dst := fmt.Sprintf("%s/%s", Config.UserDir, user)
+	msg := fmt.Sprintf("### tarhandler pwd=%s src=%s dst=%s", cwd, src, dst)
+	log.Println(msg)
+	Tar(src, dst)
+	fname := fmt.Sprintf("%s/%s.tar", dst, workflow)
+	Gzip(fname, dst)
+	tmpl["Workflow"] = workflow
+	tmpl["Path"] = fmt.Sprintf("%s/users/%s/%s.tar.gz", Config.Base, user, workflow)
+	tmpl["Template"] = "tarball.tmpl"
+	httpResponse(w, r, tmpl)
+}
+
 // ChapDocHandler handles individual workflow page/API
 func ChapDocHandler(w http.ResponseWriter, r *http.Request) {
 	tmpl := makeTmpl("CHAP documentation")
@@ -374,6 +409,7 @@ func ChapRunHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	tmpl["User"] = user
 	tmpl["Title"] = fmt.Sprintf("CHAP pipeline (%s)", user)
+	tmpl["Base"] = Config.Base
 
 	// prepare notebook
 	notebook := Notebook{
@@ -411,71 +447,64 @@ func ChapRunHandler(w http.ResponseWriter, r *http.Request) {
 	if values, ok := params["chapworkflow"]; ok {
 		workflow = values[0]
 	}
+	if workflow == "" {
+		tmpl["Error"] = "no workflow was selected"
+		tmpl["HttpCode"] = http.StatusBadRequest
+		httpResponse(w, r, tmpl)
+		return
+	}
 
-	content := fmt.Sprintf("\n<h1>Workflow: %s</h1><br/>\n", workflow)
-	content += fmt.Sprintf("\n<b>Output area: &nbsp;&rArr;&nbsp; <span class=\"blue\"><a href=\"%s/users/%s/%s\">workflow files</a></span></b>", Config.Base, user, workflow)
-	content += fmt.Sprintf("\n<b> <span class=\"blue\"><a href=\"%s/users/%s/%s/chap.log\">chap.log</a></span></b>", Config.Base, user, workflow)
-	content += "\n<h2>Config:</h2><br/>\n"
+	// add template entries about our workflow
+	udir := fmt.Sprintf("%s/users/%s/%s", Config.Base, user, workflow)
+	tmpl["UserArea"] = udir
+	tmpl["Workflow"] = workflow
+	tmpl["UserConfig"] = fmt.Sprintf("%s/%s/%s/run-chap.yaml", Config.UserDir, user, workflow)
 
-	// TODO: think about how dynamically pass module and processor
-	// possibly via params to avoid hardcoding
-	module := "userprocessor"
-	processor := "UserProcessor"
-	// generate user code
-	genUserCode(user, module, processor, lines)
+	// generate user codebase
+	module := r.Header.Get("module")
+	if module == "" {
+		module = "userprocessor"
+	}
+	processor := r.Header.Get("processor")
+	if processor == "" {
+		processor = "UserProcessor"
+	}
+	genUserCode(user, workflow, module, processor, lines)
+	tmpl["UserCode"] = fmt.Sprintf("%s.py", module)
 
 	// generate user config
-	var config string
 	if Config.Verbose > 0 {
 		log.Printf("### GENERATE NOTEBOOK workflow=%s", workflow)
 	}
-	if workflow != "" {
-		config = genWorkflowConfig(user, module, workflow)
-	} else {
-		config = genChapConfig(user, module, "yaml", "yaml")
-	}
-	content += fmt.Sprintf("\n<pre>\n%s\n</pre><br/>\n", config)
+	config := genWorkflowConfig(user, module, workflow)
 
 	// run CHAP pipeline
-	out, err := runCHAP(user, config, workflow)
-	if err != nil {
-		tmpl["Error"] = err
-		tmpl["Template"] = "error.tmpl"
-	} else {
-		tmpl["Template"] = "success.tmpl"
+	batch := false
+	if r.Header.Get("batch") == "true" {
+		batch = true
 	}
+	status := "success"
+	if _, err = runCHAP(user, config, workflow, batch); err != nil {
+		status = "error"
+		tmpl["Error"] = err
+	}
+	tmpl["Status"] = status
+	content := tmplPage("output.tmpl", tmpl)
 
 	// prepare web response
-	userInput := strings.Trim(strings.Join(lines, "\n"), " ")
-	content += fmt.Sprintf("\n<h2>Input:</h2>\n<pre>\n%s\n</pre><br/>\n", userInput)
-	content += fmt.Sprintf("\n<h2>Log:</h2>\n<pre>\n%s\n</pre><br/>\n", out)
-	if err != nil {
-		content += fmt.Sprintf("\n<h2>Error:</h2>\n<pre>\n%v\n</pre><br/>\n", err)
-	}
 	if Config.Verbose > 0 {
 		log.Println("### CHAP content\n", content)
 	}
 	tmpl["Content"] = template.HTML(content)
 
-	// check if profile output is present
-	// TODO: to handle multiple users we should probably provide
-	// ability to specify user's profile file name
-	// so far we'll use default one
-	fname := "profile.dat"
-	if _, err := os.Stat(fname); errors.Is(err, os.ErrExist) {
-		file, err := os.Open(fname)
-		if err != nil {
-			log.Println("ERROR:", err)
-		}
-		defer file.Close()
-		if data, err := io.ReadAll(file); err == nil {
-			content += fmt.Sprintf("\n<h2>Profile info:</h2>\n<pre>\n%v</pre><br/>\n", string(data))
-		} else {
-			log.Println("ERROR:", err)
-		}
-	}
-
 	httpResponse(w, r, tmpl)
+}
+
+// ChapBatchHandler handles CHAP batch page
+func ChapBatchHandler(w http.ResponseWriter, r *http.Request) {
+	// set batch HTTP header
+	r.Header.Set("batch", "true")
+	ChapRunHandler(w, r)
 }
 
 // ChapProfileHandler handles CHAP profile page
