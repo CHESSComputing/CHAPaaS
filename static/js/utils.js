@@ -41,6 +41,8 @@ function RunCHAP(profile) {
     rurl = bid.value+"/chap/run?token="+tid.value;
     if (profile == "profile") {
         rurl = bid.value+"/chap/profile?token="+tid.value;
+    } else if (profile == "batch") {
+        rurl = bid.value+"/chap/batch?token="+tid.value;
     }
     var id=document.getElementById("chapworkflow");
     if (id) {
@@ -82,4 +84,10 @@ function ShowNotebook() {
     }
     ShowTag("notebook");
     ShowTag("chap-buttons");
+}
+function HideMenu() {
+    HideTag('workflows');
+    HideTag('readers');
+    HideTag('writers');
+    HideTag('processors');
 }

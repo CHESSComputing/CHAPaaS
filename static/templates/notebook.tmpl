@@ -18,13 +18,13 @@
 
                     <!-- Workflow sub-menu -->
                     <li class="menu-item">
-                        <a href="javascript:FlipTag('workflows')" class="menu-link">Workflows</a>
+                        <a href="javascript:HideMenu();FlipTag('workflows')" class="menu-link">Workflows</a>
                         <div class="hide" name="workflows" id="workflows">
                             <div class="submenu">
                             <ul class="menu-list">
 {{range $rec := .Workflows}}
                                 <li class="menu-item">
-                                    <a href="javascript:ShowTag('workflows');AddWorkflow('{{$rec.Name}}');HideTag('workflows');ShowNotebook()" class="menu-link">{{$rec.Name}}</a>
+                                    <a href="javascript:ShowTag('workflows');AddWorkflow('{{$rec.Name}}');ShowNotebook()" class="menu-link">{{$rec.Name}}</a>
                                 </li>
 {{end}}
                             </ul>
@@ -34,13 +34,13 @@
 
                     <!-- Reader submenu -->
                     <li class="menu-item">
-                        <a href="javascript:FlipTag('readers')" class="menu-link">Readers</a>
+                        <a href="javascript:HideMenu();FlipTag('readers')" class="menu-link">Readers</a>
                         <div class="hide" name="readers" id="readers">
                             <div class="submenu">
                             <ul class="menu-list">
 {{range $reader := .Readers}}
                                 <li class="menu-item">
-                                    <a href="javascript:DocResponse('{{$reader}}');HideTag('readers')" class="menu-link">{{$reader}}</a>
+                                    <a href="javascript:DocResponse('{{$reader}}')" class="menu-link">{{$reader}}</a>
                                 </li>
 {{end}}
                                 </li>
@@ -51,13 +51,13 @@
 
                     <!-- Writer submenu -->
                     <li class="menu-item">
-                        <a href="javascript:FlipTag('writers')" class="menu-link">Writers</a>
+                        <a href="javascript:HideMenu();FlipTag('writers')" class="menu-link">Writers</a>
                         <div class="hide" name="writers" id="writers">
                             <div class="submenu">
                             <ul class="menu-list">
 {{range $writer := .Writers}}
                                 <li class="menu-item">
-                                    <a href="javascript:DocResponse('{{$writer}}');HideTag('writers')" class="menu-link">{{$writer}}</a>
+                                    <a href="javascript:DocResponse('{{$writer}}')" class="menu-link">{{$writer}}</a>
                                 </li>
 {{end}}
                             </ul>
@@ -65,13 +65,13 @@
                         </div>
                     </li>
                     <li class="menu-item">
-                        <a href="javascript:FlipTag('processors')" class="menu-link">Processor</a>
+                        <a href="javascript:HideMenu();FlipTag('processors')" class="menu-link">Processor</a>
                         <div class="hide" name="processors" id="processors">
                             <div class="submenu">
                             <ul class="menu-list">
 {{range $proc := .Processors}}
                                 <li class="menu-item">
-                                    <a href="javascript:DocResponse('{{$proc}}');HideTag('processors')" class="menu-link">{{$proc}}</a>
+                                    <a href="javascript:DocResponse('{{$proc}}')" class="menu-link">{{$proc}}</a>
                                 </li>
 {{end}}
                             </ul>
@@ -110,7 +110,7 @@
             &nbsp;
             <a href="javascript:RunCHAP('')" class="button button-primary button-small button-round">Run</a>
             &nbsp;
-            <a href="javascript:RunCHAP('profile')" class="button button-primary button-small button-round">Profile</a>
+            <a href="javascript:RunCHAP('batch')" class="button button-primary button-small button-round">Batch</a>
             &nbsp;
             <a href="{{.Base}}/chap/commit" class="button button-primary button-small button-round">Commit</a>
             &nbsp;
