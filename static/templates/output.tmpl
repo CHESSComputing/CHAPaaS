@@ -1,7 +1,6 @@
 <div>
-<h1>Workflow files</h1>
 <ul>
-    <li><b>Workflow: {{.Workflow}}</b></li>
+    <li><h2>Workflow: {{.Workflow}}</h2></li>
 {{if .Error}}
     <li>Error: <b>{{.Error}}</li>
 {{end}}
@@ -14,5 +13,8 @@
     <li><a href="{{.UserArea}}/run-chap.yaml">user configuration</a></li>
 </ul>
 Generate
+<!--
 <a href="{{.Base}}/chap/tar/{{.Workflow}}" class="button button-small">tar-ball</a>
+-->
+<a href="javascript:ajaxGenTarball('{{.User}}', '{{.Workflow}}')" class="button button-small">tar-ball</a> &nbsp; <span id="tarball"></span>
 </div>
