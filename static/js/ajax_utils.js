@@ -67,3 +67,21 @@ function ajaxSaveWorkflowConfig() {
         */
     });
 }
+// helper function to generate tar ball for given workflow
+function ajaxGenTarball(user, wflow) {
+    $(document).ready(function(){
+        // send request to /chap/tar/:workflow
+        rurl = "/chap/tar/"+wflow;
+        $.get(rurl, function(data, status){
+            var id=document.getElementById("tarball");
+            if (id) {
+                id.className="show";
+            }
+            // generate HTML link
+            tball = wflow+'.tar.gz';
+            href = '/usrs/'+user+'/'+tball;
+            id.innerHTML = 'tar-ball '+tball+' has been generated: '+'<a href="'+href+'">download</a>';
+            // http://localhost:8182/users/dev-user/basic.tar.gz
+        });
+    });
+}
