@@ -1,4 +1,5 @@
 #!/bin/bash
+### for more info see: https://wiki.classe.cornell.edu/Computing/GridEngine
 #
 # check user input
 if [ $# -ne 4 ]; then
@@ -30,6 +31,19 @@ mkdir -p $udir/$workflow
 cd $udir/$workflow
 cp -f -r $wdir/* .i
 
+# create tarball of user workflow
+tar cf /tmp/batch.tar .
+
+# create new batch_submit.sh script which will send tarball to worker node
+cat > /tmp/batch_submit.sh << EOF
+#!/bin/bash
+#$ -q all.q
+#$ -S /bin/bash
+#$ -l mem_free=8G
+#
+CHAP $config 2>&1 1>& chap.log
+cat chap.log
+EOF
+
 # TODO: implement batch sybmission for CHAP workflow
-#CHAP $config 2>&1 1>& chap.log
-#cat chap.log
+qsub -q all.q /tmp/batch_submit.sh
