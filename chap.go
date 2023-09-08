@@ -61,10 +61,10 @@ func addUserProcessor(user, module, processor string) {
 */
 
 // helper function to run CHAP pipeline
-func runCHAP(user, config, workflow string) ([]byte, error) {
+func runCHAP(user, config, workflow string, batch bool) ([]byte, error) {
 	var out []byte
 	var err error
-	fname := fmt.Sprintf("%s/%s/run-chap.yaml", Config.UserDir, user)
+	fname := fmt.Sprintf("%s/%s/%s/run-chap.yaml", Config.UserDir, user, workflow)
 	if Config.Verbose > 0 {
 		log.Println("writing config file", fname)
 	}
@@ -85,6 +85,9 @@ func runCHAP(user, config, workflow string) ([]byte, error) {
 
 	// run CHAP pipeline
 	cmd := fmt.Sprintf("%s/chap.sh", Config.ScriptsDir)
+	if batch {
+		cmd = fmt.Sprintf("%s/batch.sh", Config.ScriptsDir)
+	}
 	// user dir in configuration contains /users suffix
 	// but for running chap.sh script we should strip it off
 	//     userDir := strings.Replace(Config.UserDir, "/users", "", -1)
@@ -96,7 +99,7 @@ func runCHAP(user, config, workflow string) ([]byte, error) {
 }
 
 // helper function to generate user code
-func genUserCode(user, module, processor string, lines []string) {
+func genUserCode(user, workflow, module, processor string, lines []string) {
 
 	// initialize user dir
 	err := initUserDir(user)
@@ -120,12 +123,12 @@ func genUserCode(user, module, processor string, lines []string) {
 		tfile := "processor.tmpl"
 		content = templates.TextTmpl(tfile, tmpl)
 	}
-	tdir := fmt.Sprintf("%s/%s", Config.UserDir, user)
-	err = os.MkdirAll(fmt.Sprintf("%s/%s", Config.UserDir, user), 0755)
+	tdir := fmt.Sprintf("%s/%s/%s", Config.UserDir, user, workflow)
+	err = os.MkdirAll(fmt.Sprintf("%s/%s/%s", Config.UserDir, user, workflow), 0755)
 	if err != nil {
 		log.Println("genUserCode os.MkdirAll", err)
 	}
-	fname := fmt.Sprintf("%s/userprocessor.py", tdir)
+	fname := fmt.Sprintf("%s/%s.py", tdir, module)
 	err = os.Remove(fname)
 	if err != nil {
 		log.Println("genUserCode os.remove", err)
