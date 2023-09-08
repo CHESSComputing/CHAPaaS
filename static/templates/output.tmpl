@@ -1,0 +1,18 @@
+<div>
+<h1>Workflow files</h1>
+<ul>
+    <li><b>Workflow: {{.Workflow}}</b></li>
+{{if .Error}}
+    <li>Error: <b>{{.Error}}</li>
+{{end}}
+    <li><a href="{{.UserArea}}">user area</a></li>
+    <li><a href="{{.UserArea}}/{{.UserCode}}">user code</a></li>
+    <li><a href="{{.UserArea}}/chap.log">output log</a></li>
+    <li><a href="{{.UserArea}}/chap.yaml">meta-data</a></li>
+    <li><a href="{{.UserArea}}/conda.yml">conda environment</a></li>
+    <li><a href="{{.UserArea}}/pipeline.yaml">workflow configuration</a></li>
+    <li><a href="{{.UserArea}}/run-chap.yaml">user configuration</a></li>
+</ul>
+Generate
+<a href="{{.Base}}/chap/tar/{{.Workflow}}" class="button button-small">tar-ball</a>
+</div>
