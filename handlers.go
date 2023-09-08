@@ -456,6 +456,7 @@ func ChapRunHandler(w http.ResponseWriter, r *http.Request) {
 
 	// add template entries about our workflow
 	udir := fmt.Sprintf("%s/users/%s/%s", Config.Base, user, workflow)
+	tmpl["User"] = user
 	tmpl["UserArea"] = udir
 	tmpl["Workflow"] = workflow
 	tmpl["UserConfig"] = fmt.Sprintf("%s/%s/%s/run-chap.yaml", Config.UserDir, user, workflow)
