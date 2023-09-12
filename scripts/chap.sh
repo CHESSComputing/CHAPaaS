@@ -30,4 +30,9 @@ mkdir -p $udir/$workflow
 cd $udir/$workflow
 cp -f -r $wdir/* .
 CHAP $config 2>&1 1>& chap.log
+status=$?
 cat chap.log
+if [ "$status" == "1" ]; then
+    echo "CHAP command finished with status=$status" >> chap.log
+    exit $status
+fi
