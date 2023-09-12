@@ -15,6 +15,14 @@ fi
 
 # create proper environment
 idir=/home/chess_chapaas/chess/CHAPaaS
+if [ "`whoami`" == "chessdata_svc"  ]; then
+    idir=/home/chessdata_svc/CHAPBook/src/CHAPaaS
+elif [ "`whoami`" == "chess_chapaas"  ]; then
+    idir=/home/chess_chapaas/chess/CHAPaaS
+else
+    echo "Unsupported account: `whoami`"
+    exit 1
+fi
 jdir=$idir/jupyter
 cdir=$idir/chap
 unset PYTHONPATH
