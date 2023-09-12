@@ -13,6 +13,19 @@ import (
 	yaml "gopkg.in/yaml.v2"
 )
 
+func initWorkflowDir(user, workflow string) error {
+	path := fmt.Sprintf("%s/%s/%s", Config.UserDir, user, workflow)
+	err := os.RemoveAll(path)
+	if err != nil {
+		log.Println("os.RemoveAll", path, "error", err)
+		return err
+	}
+	err = os.MkdirAll(fmt.Sprintf("%s/%s/%s", Config.UserDir, user, workflow), 0755)
+	if err != nil {
+		log.Println("os..MkdirAll", path, "error", err)
+	}
+	return err
+}
 func initUserDir(user string) error {
 	// create and initialize user dir
 	err := os.MkdirAll(fmt.Sprintf("%s", Config.UserDir), 0755)
@@ -124,7 +137,8 @@ func genUserCode(user, workflow, module, processor string, lines []string) {
 		content = templates.TextTmpl(tfile, tmpl)
 	}
 	tdir := fmt.Sprintf("%s/%s/%s", Config.UserDir, user, workflow)
-	err = os.MkdirAll(fmt.Sprintf("%s/%s/%s", Config.UserDir, user, workflow), 0755)
+	//     err = os.MkdirAll(fmt.Sprintf("%s/%s/%s", Config.UserDir, user, workflow), 0755)
+	initWorkflowDir(user, workflow)
 	if err != nil {
 		log.Println("genUserCode os.MkdirAll", err)
 	}
