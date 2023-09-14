@@ -14,6 +14,10 @@ esac
 idir=/home/chess_chapaas/chess/CHAPaaS
 if [ "`whoami`" == "chessdata_svc"  ]; then
     idir=/home/chessdata_svc/CHAPBook/src/CHAPaaS
+    # setup conda env
+    if [ -f /home/chessdata_svc/miniconda3/etc/profile.d/conda.sh ]; then
+        source /home/chessdata_svc/miniconda3/etc/profile.d/conda.sh
+    fi
 elif [ "`whoami`" == "chess_chapaas"  ]; then
     idir=/home/chess_chapaas/chess/CHAPaaS
 else
