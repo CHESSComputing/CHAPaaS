@@ -1,5 +1,15 @@
 #!/bin/bash
 
+COLOR_OK="\\033[0;32m"
+COLOR_WARN="\\033[0;31m"
+COLOR_NORMAL="\\033[0;39m"
+echo_e=-e
+case $(uname) in Darwin )
+  md5sum() { md5 -r ${1+"$@"}; }
+  echo_e=
+  ;;
+esac
+
 # create proper environment
 idir=/home/chess_chapaas/chess/CHAPaaS
 if [ "`whoami`" == "chessdata_svc"  ]; then
@@ -20,6 +30,33 @@ mkdir -p $cdir/logs
 #
 # local functions
 # 
+status_srv() {
+    echo $echo_e "${COLOR_WARN}Checking chap services...${COLOR_NORMAL}"
+    sleep 3
+
+    # check chapaas jupyter service
+    jpid=`ps auxww | grep "chapaas.*jupyter-notebook --config" | grep -v grep | awk '{print $2}'`
+    if [ -n "$jpid" ]; then
+        echo
+        echo $echo_e "chapaas jupyter service is ${COLOR_OK}RUNNING${COLOR_NORMAL}, PID=${jpid}"
+        echo $echo_e "${COLOR_OK}Jupyter$ $jdir/logs/jupyter.log${COLOR_NORMAL}"
+        tail -5 $jdir/logs/jupyter.log
+    else
+        echo $echo_e "chapaas jupyter service is ${COLOR_WARN}NOT RUNNING${COLOR_NORMAL}"
+    fi
+
+    # check chapaas service
+    cpid=`ps auxww | grep "chapaas -config" | grep -v grep | awk '{print $2}'`
+    if [ -n "$cpid" ]; then
+        echo
+        echo $echo_e "chapaas service is ${COLOR_OK}RUNNING${COLOR_NORMAL}, PID=${cpid}"
+        echo $echo_e "${COLOR_OK}CHAPaaS $cdir/logs/chapaas.log${COLOR_NORMAL}"
+        tail -5 $cdir/logs/chapaas.log
+    else
+        echo $echo_e "chapaas service is ${COLOR_WARN}NOT RUNNING${COLOR_NORMAL}"
+    fi
+}
+
 
 start_jupyter() {
     # start jupyter server
@@ -46,22 +83,10 @@ start_chapaas() {
     cd $idir
 }
 
-status() {
-    echo "Current chap processes:"
-    ps axu | grep --color=auto -v grep | grep --color=auto "chap" -i --color=auto
-    sleep 3
-    echo
-    echo "Jupyter tail $jdir/logs/jupyter.log"
-    tail $jdir/logs/jupyter.log
-    echo
-    echo "CHAPaaS tail $cdir/logs/chapaas.log"
-    tail $cdir/logs/chapaas.log
-}
-
-start() {
+start_srv() {
     start_jupyter;
     start_chapaas;
-    status;
+    status_srv;
 }
 
 stop_jupyter() {
@@ -88,12 +113,13 @@ stop_chapaas() {
         kill -9 $cpid
     fi
 }
-stop() {
+
+stop_srv() {
     stop_jupyter;
     stop_chapaas;
 }
 
-help() {
+help_srv() {
    echo "Usage: manage <start|stop|status>"
 }
 
@@ -103,22 +129,22 @@ help() {
 
 case $1 in
   status)
-    status
+    status_srv
     ;;
   stop)
-    stop
+    stop_srv
     ;;
   start)
-    start
+    start_srv
     ;;
   restart)
-    stop
-    start
+    stop_srv
+    start_srv
     ;;
   help)
-    help
+    help_srv
     ;;
   * )
-    echo "$0: unknown action '$1', please try '$0 help' or documentation." 1>&2
+    echo "$0: unknown action '$1', please try '$0 help'" 1>&2
     exit 1 ;;
 esac
