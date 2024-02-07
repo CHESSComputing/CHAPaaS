@@ -21,6 +21,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/golang-jwt/jwt"
 	"github.com/uptrace/bunrouter"
 	"golang.org/x/oauth2"
 )
@@ -161,6 +162,23 @@ func checkAuthz(tmpl TmplRecord, w http.ResponseWriter, r *http.Request) error {
 		tmpl["Token"] = "dev-token"
 		tmpl["Provider"] = "dev-provider"
 		return nil
+	}
+
+	// check if we get Authorization token from upstream call, e.g. FOXDEN
+	authToken := r.Header.Get("Authorization")
+	if authToken != "" {
+		// check if token is valid
+		tokenStr := strings.TrimPrefix(r.Header.Get("Authorization"), "bearer ")
+		tokenStr = strings.TrimPrefix(tokenStr, "Bearer ")
+		publicKey := r.Header.Get("PublicKey")
+		claims := jwt.MapClaims{}
+		token, err := jwt.ParseWithClaims(tokenStr, &claims, func(token *jwt.Token) (interface{}, error) {
+			return []byte(publicKey), nil
+		})
+		if err == nil && token.Valid {
+			return nil
+		}
+		log.Println("Invalid FOXDEN token", err)
 	}
 
 	// get our session cookies
