@@ -180,10 +180,15 @@ func checkAuthz(tmpl TmplRecord, w http.ResponseWriter, r *http.Request) error {
 		})
 		log.Printf("Claims %+v", claims)
 		if err == nil && token.Valid {
-			session := sessionStore.New(sessionName)
-			session.Set(sessionProvider, "foxden")
-			session.Set(sessionToken, authToken)
-			session.Set(sessionUserName, "foxden")
+			if val, ok := claims["custom_claims"]; ok {
+				customClaims := val.(map[string]string)
+				user := fmt.Sprintf("%v", customClaims["user"])
+				session := sessionStore.New(sessionName)
+				session.Set(sessionProvider, "foxden")
+				session.Set(sessionToken, authToken)
+				session.Set(sessionUserName, user)
+				log.Println("set session", session, user)
+			}
 			return nil
 		}
 		log.Println("Invalid FOXDEN token", err)
