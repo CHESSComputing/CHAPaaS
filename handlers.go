@@ -188,9 +188,11 @@ func checkAuthz(tmpl TmplRecord, w http.ResponseWriter, r *http.Request) error {
 				session.Set(sessionToken, authToken)
 				session.Set(sessionUserName, user)
 				if err := session.Save(w); err != nil {
+					log.Println("unable to save session", err)
 					return err
 				}
-				log.Println("set session", session, user)
+				log.Printf("set session %+v", session)
+				http.Redirect(w, r, "/notebook", http.StatusFound)
 			}
 			return nil
 		}
