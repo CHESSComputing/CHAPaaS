@@ -165,7 +165,6 @@ func checkAuthz(tmpl TmplRecord, w http.ResponseWriter, r *http.Request) error {
 	}
 
 	// check if we get Authorization token from upstream call, e.g. FOXDEN
-	log.Println("### received %+v", r.Header)
 	var authToken string
 	for k, values := range r.URL.Query() {
 		if k == "token" {
@@ -180,13 +179,17 @@ func checkAuthz(tmpl TmplRecord, w http.ResponseWriter, r *http.Request) error {
 		})
 		log.Printf("Claims %+v", claims)
 		if err == nil && token.Valid {
-			if val, ok := claims["custom_claims"]; ok {
-				customClaims := val.(map[string]string)
+			val, ok := claims["custom_claims"]
+			if ok {
+				customClaims := val.(map[string]any)
 				user := fmt.Sprintf("%v", customClaims["user"])
 				session := sessionStore.New(sessionName)
 				session.Set(sessionProvider, "foxden")
 				session.Set(sessionToken, authToken)
 				session.Set(sessionUserName, user)
+				if err := session.Save(w); err != nil {
+					return err
+				}
 				log.Println("set session", session, user)
 			}
 			return nil
