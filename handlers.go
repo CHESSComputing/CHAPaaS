@@ -178,7 +178,12 @@ func checkAuthz(tmpl TmplRecord, w http.ResponseWriter, r *http.Request) error {
 		token, err := jwt.ParseWithClaims(authToken, &claims, func(token *jwt.Token) (interface{}, error) {
 			return []byte(Config.FoxdenPublicKey), nil
 		})
+		log.Printf("Claims %+v", claims)
 		if err == nil && token.Valid {
+			session := sessionStore.New(sessionName)
+			session.Set(sessionProvider, "foxden")
+			session.Set(sessionToken, authToken)
+			session.Set(sessionUserName, "foxden")
 			return nil
 		}
 		log.Println("Invalid FOXDEN token", err)
