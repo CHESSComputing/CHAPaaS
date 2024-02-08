@@ -165,15 +165,18 @@ func checkAuthz(tmpl TmplRecord, w http.ResponseWriter, r *http.Request) error {
 	}
 
 	// check if we get Authorization token from upstream call, e.g. FOXDEN
-	authToken := r.Header.Get("Authorization")
-	if authToken != "" {
+	log.Println("### received %+v", r.Header)
+	var authToken string
+	for k, values := range r.URL.Query() {
+		if k == "token" {
+			authToken = values[0]
+		}
+	}
+	if authToken != "" && Config.FoxdenPublicKey != "" {
 		// check if token is valid
-		tokenStr := strings.TrimPrefix(r.Header.Get("Authorization"), "bearer ")
-		tokenStr = strings.TrimPrefix(tokenStr, "Bearer ")
-		publicKey := r.Header.Get("PublicKey")
 		claims := jwt.MapClaims{}
-		token, err := jwt.ParseWithClaims(tokenStr, &claims, func(token *jwt.Token) (interface{}, error) {
-			return []byte(publicKey), nil
+		token, err := jwt.ParseWithClaims(authToken, &claims, func(token *jwt.Token) (interface{}, error) {
+			return []byte(Config.FoxdenPublicKey), nil
 		})
 		if err == nil && token.Valid {
 			return nil
