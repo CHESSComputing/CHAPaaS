@@ -19,6 +19,34 @@ git clone git@github.com:CHESSComputing/ChessAnalysisPipeline.git
 git clone git@github.com:CHAPUsers/CHAPBook.git
 ```
 
+- repo management from service account:
+```
+# add new ssh key
+ssh-keygen -t ed25519 -C "chapaas-deploy" -f ~/.ssh/chapaas_deploy_key
+
+# add new deploy key on repo site
+# visit https://github.com/CHESSComputing/CHAPaaS/settings/keys
+
+# adjust .git/config
+[core]
+        repositoryformatversion = 0
+        filemode = true
+        bare = false
+        logallrefupdates = true
+        sshCommand = ssh -i ~/.ssh/chapaas_deploy_key -o IdentitiesOnly=yes
+[remote "origin"]
+        url = git@github.com:CHESSComputing/CHAPaaS.git
+        fetch = +refs/heads/*:refs/remotes/origin/*
+[branch "main"]
+        remote = origin
+        merge = refs/heads/main
+[pull]
+        rebase = false
+
+
+```
+
+
 - download and install [jupyter](https://jupyter.org/install)
 
 - obtain github token to access and write to CHAPBook repo
