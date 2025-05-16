@@ -27,7 +27,7 @@ fi
 jdir=$idir/jupyter
 cdir=$idir/chap
 unset PYTHONPATH
-source venv/bin/activate
+source $idir/venv/bin/activate
 mkdir -p $jdir/logs
 mkdir -p $cdir/logs
 
