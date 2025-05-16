@@ -43,8 +43,9 @@ cd -
 
 # start chapaas server
 cd $cdir
-echo "starting chapaas server in $PWD"
-nohup $idir/chapaas -config $idir/config-http.json \
+config=$idir/config-http.json
+echo "starting chapaas server in $PWD with config: $config"
+nohup $idir/chapaas -config $config \
     2>&1 1>& $cdir/logs/chapaas.log < /dev/null & \
     echo $! > $cdir/logs/chapaas.pid
 echo "chapaas PID=`cat $cdir/logs/chapaas.pid`"
