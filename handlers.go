@@ -21,6 +21,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/golang-jwt/jwt"
 	"github.com/uptrace/bunrouter"
 	"golang.org/x/oauth2"
 )
@@ -161,6 +162,41 @@ func checkAuthz(tmpl TmplRecord, w http.ResponseWriter, r *http.Request) error {
 		tmpl["Token"] = "dev-token"
 		tmpl["Provider"] = "dev-provider"
 		return nil
+	}
+
+	// check if we get Authorization token from upstream call, e.g. FOXDEN
+	var authToken string
+	for k, values := range r.URL.Query() {
+		if k == "token" {
+			authToken = values[0]
+		}
+	}
+	if authToken != "" && Config.FoxdenPublicKey != "" {
+		// check if token is valid
+		claims := jwt.MapClaims{}
+		token, err := jwt.ParseWithClaims(authToken, &claims, func(token *jwt.Token) (interface{}, error) {
+			return []byte(Config.FoxdenPublicKey), nil
+		})
+		log.Printf("Claims %+v", claims)
+		if err == nil && token.Valid {
+			val, ok := claims["custom_claims"]
+			if ok {
+				customClaims := val.(map[string]any)
+				user := fmt.Sprintf("%v", customClaims["user"])
+				session := sessionStore.New(sessionName)
+				session.Set(sessionProvider, "foxden")
+				session.Set(sessionToken, authToken)
+				session.Set(sessionUserName, user)
+				if err := session.Save(w); err != nil {
+					log.Println("unable to save session", err)
+					return err
+				}
+				log.Printf("set session %+v", session)
+				http.Redirect(w, r, "/notebook", http.StatusFound)
+			}
+			return nil
+		}
+		log.Println("Invalid FOXDEN token", err)
 	}
 
 	// get our session cookies

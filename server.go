@@ -18,6 +18,7 @@ import (
 )
 
 // content is our static web server content.
+//
 //go:embed static
 var StaticFs embed.FS
 
@@ -135,7 +136,7 @@ func Server() {
 			RootCAs: RootCAs(),
 		}
 		server := &http.Server{
-			Addr:      ":https",
+			Addr:      fmt.Sprintf(":%v", Config.Port),
 			TLSConfig: tlsConfig,
 			Handler:   router,
 		}
