@@ -74,6 +74,8 @@ jupyter notebook --config /path/jupyter_config.py
 Here we used the following:
 - jupyter token
 - obtain CHAPBook repo token and store it into token file used in `github_token` configuration parameter
+	Visit github page: https://github.com/settings/tokens?type=beta
+	and go to developers settings where we can generate fine-grained access token:
 - obtain CHAP `workflows` and store it in `workflows_root` configureation
   paratemer
 - obtain OAuth credentials from github for CHESSComputing organization
